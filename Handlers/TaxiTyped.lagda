@@ -13,33 +13,13 @@ open import Agda.Builtin.Nat hiding (_<_)
 open import Data.Nat 
 open import Relation.Nullary.Decidable
 open import Examples.Gender
-open import Examples.TaxiDomainWithProofs
-
--- Is it possible to access the superset of (C taxi) considering it is finite.
--- Otherwise I think I have to use lists which are slightly less nice.
-
---_/_ : (dividend divisor : ℕ) {≢0 : False (divisor ≟ 0)} → ℕ
---m / (suc n) = div-helper 0 n m n
-
-{- 
-NonZero : ℕ → Set
-NonZero zero    = ⊥
-NonZero (suc x) = ⊤
-
--- Constructors
-
-≢-nonZero : ∀ {n} → n ≢ 0 → NonZero n
-≢-nonZero {zero}  0≢0 = 0≢0 refl
-≢-nonZero {suc n} n≢0 = tt
-
->-nonZero : ∀ {n} → n > 0 → NonZero n
->-nonZero (s≤s 0<n) = tt -}
---(≢0 : False (lowerbound ≟ 0)
+open import Examples.TaxiDomain
+open import Agda.Builtin.Unit
+open import Data.String hiding (_<_ ; _<?_; _≟_ )
 
 module Handlers.TaxiTyped  (getGender : C taxi → Gender)
                            (noOfGender : Gender → Nat)
                            (margin : Nat) where
-
 
 
 variable
@@ -61,7 +41,6 @@ effects = ActionDescription.effects
 -- This is the type of an ActionHandler. An ActionHandler takes in an Action and a World and returns a new World.
 -- This Action handler also has a type that ensures that every Action is associated with a taxi and that the taxi
 -- will not exceed its max number of trips. Here we assume that the numberOfTrips function is an auto-updating oracle.
-
 ActionHandler : Set
 ActionHandler = Action -> World -> World
 
@@ -81,20 +60,8 @@ remove x (y ∷ w) | no ¬p = y ∷ remove x w
 σα ((+ , x) ∷ N) w = x ∷ σα N w
 σα ((- , x) ∷ N) w = remove x (σα N w)
 
--- Canonical Handler
-canonical-σ : Context → ActionHandler
-canonical-σ Γ α = σα (effects (Γ α))
-
---Evalutation Function
-execute : Plan → ActionHandler → World → World
-execute (α ∷ f) σ w = execute f σ (σ α w)
-execute halt σ w = w
-
---List size is total number of taxi's e.g (length xs)
-
 -- Instead of float we will us nat to two decimal places by multiplying by 100
 open import Data.Nat.DivMod
-
 
 totalDrivers : Nat
 totalDrivers = _+_ (noOfGender male) (_+_ (noOfGender female) (noOfGender other))
@@ -125,58 +92,11 @@ incTripsG g f g1 with decGender g g1
 ... | no ¬p = f g1
 ... | yes _≡_.refl = suc (f g)
 
--- assignments = (tripsTaken gender * 100) / totalTripsTaken --gives percentage of trips taken for a gender
--- lowerbound = (percentage of gender) - (percentage of gender / 4) --give a lower bound for assignments 
--- We simply need to check (assignments > lowerbound) for all genders)
-
-
--- totalTripsTaken has to be > 0 for division
-
-
--- If there is 10 people then we want to have 100 trips taken before enforcing this otherwise the variance will
--- be too low.
-
---What happens if a gender has 0 people in the list?
-
-
-
-{- 
-isFair3 : (g : Gender) -> (f : (Gender -> Nat)) -> (prf : False (totalTripsTaken f Data.Nat.≟ 0)) -> (_/_ (f g * 100) (totalTripsTaken f) {prf}) > (_-_ (percentage g) (_/_ (percentage g) lowerbound {≢0}))
-isFair3 x f prf = {!!}
-
-
-
-fairForAll2 : (Gender -> Nat) -> Nat 
-fairForAll2 f with totalTripsTaken f >? (totalDrivers * 10) -- needs to be greater than so we know that trips taken is greater than 0
-... | no ¬p = {!!}
-... | yes p = {!!}
-  where
-    prf = help (totalTripsTaken f) (totalDrivers * 10) p -}
-
-
-
-
-open import Agda.Builtin.Unit
- 
-gZero : (n m : Nat) -> n > m ->  False (n Data.Nat.≟ 0)
-gZero .(suc _) m (s≤s x) = tt
-
-
-
- 
-open import Agda.Builtin.Unit
-
-
 -- True if the action does not affect the number of trips taken
 TripAgnostic : Action -> Set
 TripAgnostic (drivePassenger t p1 l1 l2) = ⊥
 TripAgnostic (drive t l1 l2) = ⊤
 
-open import Data.String hiding (_<_ ; _<?_)
-
-
---data Error : Set where
---  notProportional : (f : Gender -> Nat) -> ¬(isFairForAll f) -> Error
 
 -------------------------------------------------------------------------------------------------------
 -- Conditions
@@ -287,134 +207,7 @@ execute' ((drive txi l1 l2) ∷ f) σ tripsTaken w = execute' f σ tripsTaken
                                                                  w)
 execute' halt σ tripsTaken w = inj₁ w  
 
-{-
-⟦_⟧₃ : Plan -> ActionHandlerTaxi
-            -> (tripsTaken : (Gender -> Nat))
-            -> World
-            -> World ⊎ Error
-⟦ ((drivePassenger txi p1 l1 l2) ∷ f) ⟧₃ σ tripsTaken w with isFairForAll? (incTripsG (getGender txi) tripsTaken) 
-... | no ¬p = inj₂ (notProportional (drivePassenger txi p1 l1 l2) ((incTripsG (getGender txi) tripsTaken)) ¬p) --inj₂ (notProportional _ ¬p)
-... | yes p =  ⟦ f ⟧₃ σ (incTripsG (getGender txi) tripsTaken) 
-                                                             (σ (drivePassenger txi p1 l1 l2)
-                                                                 {getGender txi}
-                                                                 {tripsTaken}
-                                                                 {inj₂ p}
-                                                                 w)
-⟦ ((drive txi l1 l2) ∷ f) ⟧₃ σ tripsTaken w = ⟦ f ⟧₃ σ tripsTaken 
-                                                             (σ (drive txi l1 l2)
-                                                                 {getGender txi}
-                                                                 {tripsTaken} 
-                                                                {inj₂ tt}
-                                                                 w)
-⟦ halt ⟧₃ σ tripsTaken w = inj₁ w  
--}
+canonical-σ : Context → GenderAwareActionHandler
+canonical-σ Γ α = σα (effects (Γ α))
 
-canonical-σ₃ : Context → GenderAwareActionHandler
-canonical-σ₃ Γ α = σα (effects (Γ α))
-
-----------------------------------------------------------------------------------------------------------------
-
-data Fuel : Nat → Set where
-  fuel : (n : Nat) → Fuel n
-
-EnergyValue : Fuel n → Nat
-EnergyValue {n} x = n
-
-FuelAwareActionHandler : Set
-FuelAwareActionHandler = ∀ {n} → Action
-                      → World × Fuel (suc n)
-                      → World × Fuel n
-
-
-data OutOfFuelError : Set where
-  error : Action -> World -> OutOfFuelError
-
--- implementing an actual handler of this type future work
-executeWithFuel : Plan → FuelAwareActionHandler
-             → World × Fuel n
-             → World ⊎ OutOfFuelError
-executeWithFuel (α ∷ f) σ (w , (fuel zero)) = inj₂ (error α w)
-executeWithFuel (α ∷ f) σ (w , (fuel (suc n))) =
-            executeWithFuel f σ (σ α (w , (fuel (suc n))))
-executeWithFuel halt σ (w , e) = inj₁ w
-
-getWorld : World × Fuel n -> World
-getWorld (w , e) = w
-
-
--- World constructor from state
-σα' : State →  World × Fuel (suc n)
-            → World × Fuel n
-σα' [] (w , e) = w , fuel _
-σα' ((+ , s) ∷ S) w = (s ∷ getWorld (σα' S w)) , fuel _
-σα' ((- , s) ∷ S) w = remove s (getWorld (σα' S w)) , fuel _
-
-enriched-σ : Context → FuelAwareActionHandler
-enriched-σ Γ α = σα' (effects (Γ α ))
-
-
-{-
-⟦_⟧₆ : Plan ->  actionHandler -> World × Energy n -> Maybe (World × Nat)
-⟦ α ∷ f ⟧₆ σ (w , (fuel zero)) = nothing
-⟦ α ∷ f ⟧₆ σ (w , (fuel (suc n))) = ⟦ f ⟧₆ σ (σ α (w , (fuel (suc n))))
-⟦ halt ⟧₆ σ (w , e) = just (w , EnergyValue e)
--}
-
-
-
-------------------------------------------------------------------------------------------------------------------
 \end{code}
-
-ActionHandler4 : Set
-ActionHandler4 = (α : Action)
-                -> {g : Gender}
-                -> {tripsTaken : (Gender -> Nat)}
-                -> {isFairForAll (incTripsG g tripsTaken) ⊎ TripAgnostic α}
-                -> World -> World
-
--- We can probably remove this notion of the list of taxis
--- Is there any way we can figure this informaation out from the getGender function
-
-⟦_⟧₄ : Plan -> ActionHandler4
-            -> (tripsTaken : (Gender -> Nat))
-            -> World
-            -> Maybe World
-⟦ ((drivePassenger txi p1 l1 l2) ∷ f) ⟧₄ σ tripsTaken w with decFair (incTripsG (getGender txi) tripsTaken) 
-... | no ¬p = nothing
-... | yes p =  ⟦ f ⟧₄ σ (incTripsG (getGender txi) tripsTaken) 
-                                                             (σ (drivePassenger txi p1 l1 l2)
-                                                                 {getGender txi}
-                                                                 {tripsTaken}
-                                                                 {inj₁ p}
-                                                                 w)
-⟦ ((drive txi l1 l2) ∷ f) ⟧₄ σ tripsTaken w = ⟦ f ⟧₄ σ tripsTaken 
-                                                             (σ (drive txi l1 l2)
-                                                                 {getGender txi}
-                                                                 {tripsTaken}
-                                                                 {inj₂ tt}
-                                                                 w)
-⟦ halt ⟧₄ σ tripsTaken w = just w
-
--- Canonical Handler
-canonical-σ₄ : Γ → ActionHandler4
-canonical-σ₄ Γ α = σα (effects (Γ α))
-
-⟦_⟧₅ : Plan -> ActionHandler4
-            -> (tripsTaken : (Gender -> Nat))
-            -> World
-            -> World  ⊎ Error
-⟦ ((drivePassenger txi p1 l1 l2) ∷ f) ⟧₅ σ tripsTaken w with decFair (incTripsG (getGender txi) tripsTaken) 
-... | no ¬p = inj₂ (notProportional ((incTripsG (getGender txi) tripsTaken)) ¬p) --inj₂ (notProportional _ ¬p)
-... | yes p =  ⟦ f ⟧₅ σ (incTripsG (getGender txi) tripsTaken) 
-                                                             (σ (drivePassenger txi p1 l1 l2)
-                                                                 {getGender txi}
-                                                                 {tripsTaken}
-                                                                 {inj₁ p}
-                                                                 w)
-⟦ ((drive txi l1 l2) ∷ f) ⟧₅ σ tripsTaken w = ⟦ f ⟧₅ σ tripsTaken 
-                                                             (σ (drive txi l1 l2)
-                                                                 {getGender txi}
-                                                                 {tripsTaken} 
-                                                                {inj₂ tt}
-                                                                 w)
-⟦ halt ⟧₅ σ tripsTaken w = inj₁ w
