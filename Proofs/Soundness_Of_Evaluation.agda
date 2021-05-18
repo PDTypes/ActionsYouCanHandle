@@ -14,7 +14,7 @@ module Proofs.Soundness_Of_Evaluation {Action : Set} {Predicate : Set} {Type : S
 open import GrammarTypes Action Predicate Type Object
 open import PCPlansTyped Action Predicate Type Object isDE 
 open import MembershipAndStateTyped Action Predicate Type Object isDE 
-open import Subtyping PredMap isSame hiding (State)
+open import Subtyping PredMap isSame 
 open import ActionHandler Action Predicate Type Object isDE 
 
 <:-resp-∈ : ∀{N M} → M <: N → ∀{w} → w ∈⟨ M ⟩ → w ∈⟨ N ⟩
@@ -34,6 +34,9 @@ open import ActionHandler Action Predicate Type Object isDE
 ---------------------------------------------------------------
 -- Theorem 2: Soundness of evaluation of normalised formula
 --
+
+open ActionDescription
+
 sound : ∀{w σ M Γ f N}
       → WfHandler Γ σ
       → Γ ⊢ f ∶ M ↝ N
