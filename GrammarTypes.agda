@@ -82,14 +82,6 @@ Context = Action → ActionDescription
 --------------------------------------------------------
 
 -- Relation between NPred and World
-{-
-  If we have an action α in gamma
-  And has preconditions proj₁ (Γ α) and postconditions proj₂ (Γ α)
-  proj₁ (Γ α) is a subtype of M
-  and M is true in the world w
-  then the application of the action handler σ of action α
-  results in M being overriden by proj₂ (Γ α) in w
--}
 _∈⟨_⟩ : World → State → Set
 w ∈⟨ N ⟩ = (∀ a → (+ , a) ∈ N → a ∈ w) × (∀ a → (- , a) ∈ N → a ∉ w)
 

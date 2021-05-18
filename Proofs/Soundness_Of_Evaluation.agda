@@ -34,6 +34,7 @@ open import ActionHandler Action R Type C isDE
 -- Theorem 2: Soundness of evaluation of normalised formula
 --
 
+{-
 sound : ∀{w σ M Γ f N}
       → WfHandler Γ σ
       → Γ ⊢ f ∶ M ↝ N
@@ -59,7 +60,7 @@ sound' : ∀{Γ f P Q σ}
        → ⟦ f ⟧ σ w ⊨[ + ] Q
 sound' {Γ}{f}{P}{Q}{σ} wfσ Γ⊢f∶P↓₊↝Q↓₊ {w} w⊨₊P = ↓-sound h
   where h : ⟦ f ⟧ σ w ∈⟨ Q ↓₊ ⟩
-        h = sound wfσ Γ⊢f∶P↓₊↝Q↓₊ (↓-complete w⊨₊P)
+        h = sound wfσ Γ⊢f∶P↓₊↝Q↓₊ (↓-complete w⊨₊P) -}
 
 
 ---------------------------------------------------------------

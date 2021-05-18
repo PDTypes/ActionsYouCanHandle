@@ -1,4 +1,4 @@
-module Tutorial.TaxiDomainWithProofsExperimentWithFin where
+module Examples.TaxiDomainWithProofsExperimentWithFin where
 
 open import Relation.Binary.PropositionalEquality
 open import Relation.Binary
@@ -51,7 +51,7 @@ data Action : Set where
   drivePassenger : C taxi → C person → C location → C location → Action
   drive : C taxi → C location → C location → Action
 
-open import Tutorial.Gender
+open import Gender
 open import Agda.Builtin.FromNat
 
 instance
@@ -79,30 +79,19 @@ noGender g = length (filter (λ t → decGender g (getGender t)) allTaxis)
 -----------------------------------------------------------------------------------
 -- The rest is proving decidable equality for all of the above data types.
 
-
--- Automatically derive decidable equality of the above types
-{-
-unquoteDecl EqT = deriveEq EqT (quote Type)
-unquoteDecl EqC = deriveEq EqC (quote C)
-unquoteDecl EqR = deriveEq EqR (quote R)
-unquoteDecl EqAction = deriveEq EqAction (quote Action)
-
-
-open import Mangle using (mangle)
-
 isDECT : IsDecEquivalence {zero} {zero} (_≡_ {A = Type})
 isDECT = record { isEquivalence = record {
   refl = λ {x} → refl ;
   sym = λ x → sym x ;
   trans = trans } ;
-  _≟_ = mangle  }
+  _≟_ = {!!}  }
 
 isDEC : (t : Type) -> IsDecEquivalence {zero} {zero} (_≡_ {A = C t})
 isDEC t = record { isEquivalence = record {
   refl = λ {x} → refl ;
   sym = λ x → sym x ;
   trans = trans } ;
-  _≟_ = mangle  }
+  _≟_ = {!!}  }
 
 open IsDecEquivalence isDECT hiding (refl ; sym ; trans) renaming (_≟_ to _≟ₜ_)
 open import Relation.Nullary
@@ -116,13 +105,13 @@ isDecidable = record { isEquivalence = record {
   refl = λ {x} → refl ;
   sym = λ x → sym x ;
   trans = trans } ;
- _≟_ = mangle  }
+ _≟_ = {!!}  }
 
 isDECA : IsDecEquivalence {zero} {zero} (_≡_ {A = Action})
 isDECA = record { isEquivalence = record {
   refl = λ {x} → refl ;
   sym = λ x → sym x ;
   trans = trans } ;
-  _≟_ = mangle  }
+  _≟_ = {!!}  }
 
--}
+
