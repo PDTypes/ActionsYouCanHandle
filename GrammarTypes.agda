@@ -1,11 +1,9 @@
-module GrammarTypes  (Action : Set) (R : Set) (Type : Set) (C : Type -> Set) where
-
--- R is a predicate
+module GrammarTypes  (Action : Set) (Predicate : Set) (Type : Set) (Object : Type -> Set) where
 
 data Form : Set where
   _∧_ : Form → Form → Form
-  ¬_ : R  → Form
-  atom : R → Form
+  ¬_ : Predicate  → Form
+  atom : Predicate → Form
 infixl 4 _∧_
 infixl 5 ¬_
 
@@ -16,7 +14,7 @@ infixl 5 ¬_
 open import Data.List
 
 World : Set
-World = List R
+World = List Predicate
 
 data Polarity : Set where
   + - : Polarity
@@ -45,7 +43,7 @@ open import Data.Product
 
 -- A pair containing a predicate and polarity
 PredMap : Set
-PredMap = (Polarity × R)
+PredMap = (Polarity × Predicate)
 
 -- A list containing pairs of polarities and predicates
 State : Set

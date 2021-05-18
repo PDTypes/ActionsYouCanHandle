@@ -2,10 +2,10 @@ open import Relation.Binary
 open import Relation.Binary.PropositionalEquality
 open import Level
 
-module MembershipAndStateTyped  (Action : Set) (R : Set)  (Type : Set) (C : Type -> Set)
-                                            (isDE : IsDecEquivalence {A = R} (_≡_) )  where
+module MembershipAndStateTyped  (Action : Set) (Predicate : Set)  (Type : Set) (Object : Type -> Set)
+                                            (isDE : IsDecEquivalence {A = Predicate} (_≡_) )  where
 
-open import GrammarTypes Action R Type C
+open import GrammarTypes Action Predicate Type Object
 
 open import Data.Product
 open import Relation.Nullary
@@ -18,17 +18,17 @@ open import Data.List.Relation.Unary.Any using (Any; any?; here; there)
 -- New Definitions Of Membership -----------------------------------------------------------------
 
 --Defining above using Any instead
-_atom≡_ : (a : R) (p : PredMap) -> Set
+_atom≡_ : (a : Predicate) (p : PredMap) -> Set
 a atom≡ s = a ≡ proj₂ s
 
-_∈S_ : (a : R) (s : State) -> Set
+_∈S_ : (a : Predicate) (s : State) -> Set
 a ∈S s = Any (a atom≡_) s
   
 -- Is an atom not in a State
-_∉S_ : (a : R) (s : State) -> Set
+_∉S_ : (a : Predicate) (s : State) -> Set
 a ∉S s = Relation.Nullary.¬ (a ∈S s)
 
-isInState  : (a : R) -> (s : State) -> Dec (a ∈S s)
+isInState  : (a : Predicate) -> (s : State) -> Dec (a ∈S s)
 isInState a s = any? (λ x → a ≟ proj₂ x) s
 -- uses any in Data.List.Relation.Unary.Any renamed to any? in new version of std lib
 
@@ -79,7 +79,7 @@ P ⊔N ((z , a) ∷ Q) with isInState a P
 
 open import Data.List.Membership.Propositional
 
-del : R → State → State
+del : Predicate → State → State
 del x [] = []
 del x ((t' , x') ∷ M) with x ≟ x'
 del x ((t' , x') ∷ M) | yes p =  del x M

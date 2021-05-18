@@ -6,9 +6,9 @@ open import Data.List.Membership.Propositional
 open import Data.List.Relation.Unary.Any
 open import Data.List hiding (any)
 
-module Proofs.Possible_World_Soundness (Action : Set) (R : Set) (Type : Set) (C : Type -> Set) where
+module Proofs.Possible_World_Soundness (Action : Set) (Predicate : Set) (Type : Set) (Object : Type -> Set) where
 
-open import GrammarTypes Action R Type C 
+open import GrammarTypes Action Predicate Type Object
 
 --------------------------------------------------------
 -- Code for the Soundness and Completeness proofs
@@ -246,18 +246,18 @@ helperNeg w t P Q N a x x1 x2 x3 | inj₂ y = proj₂ x a y x3
 --------------------------------------------------------------------------------------------------------------------------------------
 -- New proofs
 
-helper : (a : R) -> (N : State) -> (+ , a) ∈ N -> a ∈ (stateToWorld N)
+helper : (a : Predicate) -> (N : State) -> (+ , a) ∈ N -> a ∈ (stateToWorld N)
 helper a ((+ , .a) ∷ N) (here refl) = here refl
 helper a ((+ , a1) ∷ N) (there x) = there (helper a N x)
 helper a ((- , a1) ∷ N) (there x) = helper a N x
 
-helper2 : (a : R) -> (N : State) -> a ∈ (stateToWorld N) -> (+ , a) ∈ N
+helper2 : (a : Predicate) -> (N : State) -> a ∈ (stateToWorld N) -> (+ , a) ∈ N
 helper2 a ((+ , .a) ∷ N) (here refl) = here refl
 helper2 a ((+ , snd) ∷ N) (there x) = there (helper2 a N x)
 helper2 a ((- , snd) ∷ N) x = there (helper2 a N x)
 
 postulate
-  implicit-consistency-assumption : (t : Polarity) (x : R) → ∀ N → (t , x) ∈ N → (neg t , x) ∉ N
+  implicit-consistency-assumption : (t : Polarity) (x : Predicate) → ∀ N → (t , x) ∈ N → (neg t , x) ∉ N
 
 stateToWorldConversionSound : (N : State) -> (stateToWorld N) ∈⟨ N ⟩
 stateToWorldConversionSound [] = (λ x ()) , (λ x x₁ ())

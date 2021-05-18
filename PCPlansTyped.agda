@@ -12,7 +12,7 @@ open import Level
 -- The following module declarartion allows to develop the file parametrised on an abstract set R of predicates
 -- an an abstract set A of declared actions. The former must have decidable equivalence.
 
-module PCPlansTyped (Action : Set) (R : Set) (Type : Set) (C : Type -> Set) (isDE : IsDecEquivalence {A = R} (_≡_) ) where
+module PCPlansTyped (Action : Set) (Predicate : Set) (Type : Set) (Object : Type -> Set) (isDE : IsDecEquivalence {A = Predicate} (_≡_) ) where
 
 -- R is a predicate
 
@@ -21,9 +21,8 @@ open import Data.Vec hiding (_++_; remove)
 open import Data.List hiding (any)
 open import Data.Product
 
-open import GrammarTypes Action R Type C
-
-open import MembershipAndStateTyped Action R Type C isDE 
+open import GrammarTypes Action Predicate Type Object
+open import MembershipAndStateTyped Action Predicate Type Object isDE 
 open import Subtyping PredMap isSame hiding (State)
 
 ---------------------------------------------------------------

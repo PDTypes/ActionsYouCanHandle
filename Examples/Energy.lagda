@@ -18,11 +18,11 @@ open import Relation.Nullary
 open import Data.Maybe
 
 
-module Handlers.Energy where
+module Examples.Energy where
 variable
   n m : Nat
 
-open import GrammarTypes Action R Type C hiding (¬_)
+open import GrammarTypes Action Predicate Type Object hiding (¬_)
 
 ----------------------------------------------------------------------------------------
 
@@ -34,9 +34,8 @@ ActionHandler = Action -> World -> World
 
 open IsDecEquivalence  isDecidable renaming (_≟_ to _≟ᵣ_)
 
-
 -- Remove a predicate R from a world.
-remove : R → World → World
+remove : Predicate → World → World
 remove x [] = []
 remove x (y ∷ w) with x ≟ᵣ y
 remove x (y ∷ w) | yes p = remove x w

@@ -17,17 +17,15 @@ open import Examples.TaxiDomain
 open import Agda.Builtin.Unit
 open import Data.String hiding (_<_ ; _<?_; _≟_ )
 
-module Handlers.TaxiTyped  (getGender : C taxi → Gender)
-                           (noOfGender : Gender → Nat)
+module Examples.TaxiTyped  (getGender : Object taxi → Gender)
                            (margin : Nat) where
-
 
 variable
   n m : Nat
 
 -- This imports our typed planning Grammar
 
-open import GrammarTypes Action R Type C hiding (¬_)
+open import GrammarTypes Action Predicate Type Object hiding (¬_)
 
 ----------------------------------------------------------------------------------------
 
@@ -48,7 +46,7 @@ open IsDecEquivalence  isDecidable renaming (_≟_ to _≟ᵣ_)
 
 
 -- Remove a predicate R from a world.
-remove : R → World → World
+remove : Predicate → World → World
 remove x [] = []
 remove x (y ∷ w) with x ≟ᵣ y
 remove x (y ∷ w) | yes p = remove x w
@@ -64,7 +62,7 @@ remove x (y ∷ w) | no ¬p = y ∷ remove x w
 open import Data.Nat.DivMod
 
 totalDrivers : Nat
-totalDrivers = _+_ (noOfGender male) (_+_ (noOfGender female) (noOfGender other))
+totalDrivers = _+_ (noGender male) (_+_ (noGender female) (noGender other))
 
 -- Dividing by zero equals zero
 
@@ -76,7 +74,7 @@ zeroDiv n (suc m) | no ¬p = n / (suc m)
 
 --percentage of each gender
 percentage : Gender -> Nat
-percentage g = zeroDiv (noOfGender g * 100) totalDrivers 
+percentage g = zeroDiv (noGender g * 100) totalDrivers 
 
 -- Cannot have over a 20% difference in taxi allocations from the proportional representation
 -- could move this so it is passed into the module

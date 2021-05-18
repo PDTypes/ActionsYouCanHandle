@@ -38,18 +38,18 @@ numberOfPeople : Nat
 numberOfPeople = 3
 
 -- A list of typed constants. 
-data C : Type -> Set where
-  taxi : Fin numberOfTaxis -> C taxi
-  location : Fin numberOfLocations -> C location
-  person : Fin numberOfPeople -> C person
+data Object : Type -> Set where
+  taxi : Fin numberOfTaxis -> Object taxi
+  location : Fin numberOfLocations -> Object location
+  person : Fin numberOfPeople -> Object person
 
-data R : Set where
-  taxiIn : C taxi → C location → R
-  personIn : C person -> C location -> R
+data Predicate : Set where
+  taxiIn : Object taxi → Object location → Predicate
+  personIn : Object person -> Object location -> Predicate
 
 data Action : Set where
-  drivePassenger : C taxi → C person → C location → C location → Action
-  drive : C taxi → C location → C location → Action
+  drivePassenger : Object taxi → Object person → Object location → Object location → Action
+  drive : Object taxi → Object location → Object location → Action
 
 open import Examples.Gender
 open import Agda.Builtin.FromNat
@@ -63,13 +63,13 @@ instance
   NumFin {n} = FinLiterals.number n
 
 -- Assign all taxis to a gender
-getGender : C taxi -> Gender
+getGender : Object taxi -> Gender
 getGender (taxi 0F) = male
 getGender (taxi 1F) = female
 getGender (taxi 2F) = male
 
 -- Generate list of all possible taxis
-allTaxis : List (C taxi)
+allTaxis : List (Object taxi)
 allTaxis = Data.List.map taxi (allFin numberOfTaxis)
 
 -- return the number of taxis of a specific gender 
@@ -99,51 +99,51 @@ isDECT = record { isEquivalence = record {
 
 open import Data.Fin.Properties using (_≟_)
 
-C? : {t : Type} -> (x y : C t) → Dec (x ≡ y)
-C? (taxi x) (taxi x₁) with x ≟ x₁
+Object? : {t : Type} -> (x y : Object t) → Dec (x ≡ y)
+Object? (taxi x) (taxi x₁) with x ≟ x₁
 ... | no ¬p = no (λ { refl → ¬p refl})
 ... | yes refl = yes refl
-C?  (location x) (location x₁) with x ≟ x₁
+Object?  (location x) (location x₁) with x ≟ x₁
 ... | no ¬p = no (λ { refl → ¬p refl})
 ... | yes refl = yes refl
-C?  (person x) (person x₁) with x ≟ x₁
+Object?  (person x) (person x₁) with x ≟ x₁
 ... | no ¬p = no (λ { refl → ¬p refl})
 ... | yes refl = yes refl
 
-isDEC : (t : Type) -> IsDecEquivalence {zero} {zero} (_≡_ {A = C t})
+isDEC : (t : Type) -> IsDecEquivalence {zero} {zero} (_≡_ {A = Object t})
 isDEC t = record { isEquivalence = record {
   refl = λ {x} → refl ;
   sym = λ x → sym x ;
   trans = trans } ;
-  _≟_ = C? }
+  _≟_ = Object? }
 
 open IsDecEquivalence isDECT hiding (refl ; sym ; trans) renaming (_≟_ to _≟ₜ_)
 open import Relation.Nullary
 
-decSingleC : (t : Type) -> (x y : C t) -> Dec (x ≡ y)
+decSingleC : (t : Type) -> (x y : Object t) -> Dec (x ≡ y)
 decSingleC t x y = x ≟c y
   where open IsDecEquivalence (isDEC t) renaming (_≟_ to _≟c_)
 
-R? : (x y : R) → Dec (x ≡ y)
-R? (taxiIn x x₁) (taxiIn x₂ x₃) with C? x x₂ | C? x₁ x₃
+Predicate? : (x y : Predicate) → Dec (x ≡ y)
+Predicate? (taxiIn x x₁) (taxiIn x₂ x₃) with Object? x x₂ | Object? x₁ x₃
 ... | no ¬p | no ¬p₁ = no (λ { refl → ¬p₁ refl})
 ... | no ¬p | yes p = no (λ { refl → ¬p refl})
 ... | yes p | no ¬p = no (λ { refl → ¬p refl})
 ... | yes refl | yes refl = yes refl
-R? (taxiIn x x₁) (personIn x₂ x₃) = no (λ ())
-R? (personIn x x₁) (taxiIn x₂ x₃) = no (λ ())
-R? (personIn x x₁) (personIn x₂ x₃) with C? x x₂ | C? x₁ x₃
+Predicate? (taxiIn x x₁) (personIn x₂ x₃) = no (λ ())
+Predicate? (personIn x x₁) (taxiIn x₂ x₃) = no (λ ())
+Predicate? (personIn x x₁) (personIn x₂ x₃) with Object? x x₂ | Object? x₁ x₃
 ... | no ¬p | no ¬p₁ = no (λ { refl → ¬p₁ refl})
 ... | no ¬p | yes p = no (λ { refl → ¬p refl})
 ... | yes p | no ¬p = no (λ { refl → ¬p refl})
 ... | yes refl | yes refl = yes refl
 
-isDecidable : IsDecEquivalence {zero} {zero} (_≡_ {A = R})
+isDecidable : IsDecEquivalence {zero} {zero} (_≡_ {A = Predicate})
 isDecidable = record { isEquivalence = record {
   refl = λ {x} → refl ;
   sym = λ x → sym x ;
   trans = trans } ;
- _≟_ = R?  }
+ _≟_ = Predicate?  }
 
 
 

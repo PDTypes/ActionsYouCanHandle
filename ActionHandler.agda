@@ -4,11 +4,11 @@ open import Data.Product
 open import Data.List hiding (any)
 open import Relation.Nullary
 
-module ActionHandler (Action : Set) (R : Set) (Type : Set) (C : Type -> Set) (isDE : IsDecEquivalence {A = R} (_≡_) )
+module ActionHandler (Action : Set) (Predicate : Set) (Type : Set) (Object : Type -> Set) (isDE : IsDecEquivalence {A = Predicate} (_≡_) )
       where
 
-open import GrammarTypes Action R Type C 
-open import MembershipAndStateTyped Action R Type C isDE 
+open import GrammarTypes Action Predicate Type Object 
+open import MembershipAndStateTyped Action Predicate Type Object isDE 
 open import Subtyping PredMap isSame hiding (State)
                                               
 -- Action Handler
@@ -16,9 +16,9 @@ ActionHandler : Set
 ActionHandler = Action → World → World
 
 -- Evalutation function
-⟦_⟧ : Plan → ActionHandler → World → World
-⟦ α ∷ f ⟧ σ w = ⟦ f ⟧ σ (σ α w)
-⟦ halt ⟧ σ w = w
+execute : Plan → ActionHandler → World → World
+execute (α ∷ f) σ w = execute f σ (σ α w)
+execute halt σ w = w
 
 -- Well formed handler
 

@@ -9,13 +9,13 @@ open import Data.Empty
 open import Data.List.Relation.Unary.Any
 
 
-module Proofs.Soundness_Of_Evaluation {Action : Set} {R : Set} {Type : Set} {C : Type -> Set} {isDE : IsDecEquivalence {A = R} (_≡_) } where
+module Proofs.Soundness_Of_Evaluation {Action : Set} {Predicate : Set} {Type : Set} {Object : Type -> Set} {isDE : IsDecEquivalence {A = Predicate} (_≡_) } where
 
-open import GrammarTypes Action R Type C
-open import PCPlansTyped Action R Type C isDE 
-open import MembershipAndStateTyped Action R Type C isDE 
+open import GrammarTypes Action Predicate Type Object
+open import PCPlansTyped Action Predicate Type Object isDE 
+open import MembershipAndStateTyped Action Predicate Type Object isDE 
 open import Subtyping PredMap isSame hiding (State)
-open import ActionHandler Action R Type C isDE 
+open import ActionHandler Action Predicate Type Object isDE 
 
 <:-resp-∈ : ∀{N M} → M <: N → ∀{w} → w ∈⟨ M ⟩ → w ∈⟨ N ⟩
 <:-resp-∈ ([]<: N) w∈⟨M⟩ = (λ _ ()) , λ _ ()
@@ -37,7 +37,7 @@ sound : ∀{w σ M Γ f N}
       → WfHandler Γ σ
       → Γ ⊢ f ∶ M ↝ N
       → w ∈⟨ M ⟩
-      → ⟦ f ⟧ σ w ∈⟨ N ⟩
+      → execute f σ w ∈⟨ N ⟩
 sound wfσ (halt N<:M) w∈⟨M⟩ = <:-resp-∈ N<:M w∈⟨M⟩
 sound {w}{σ}{M}{Γ} wfσ (seq {α}{M₁} M₁'<:M Γ⊢f∶M⊔M₂↝N) w∈⟨M⟩ =
   sound wfσ Γ⊢f∶M⊔M₂↝N σαw∈⟨M⊔NM₂⟩
@@ -49,15 +49,15 @@ sound {w}{σ}{M}{Γ} wfσ (seq {α}{M₁} M₁'<:M Γ⊢f∶M⊔M₂↝N) w∈�
 --
 
 
-open import Proofs.Possible_World_Soundness Action R Type C
+open import Proofs.Possible_World_Soundness Action Predicate Type Object
 
 sound' : ∀{Γ f P Q σ}
        → WfHandler Γ σ
        → Γ ⊢ f ∶ (P ↓₊) ↝ (Q ↓₊)
        → ∀{w} → w ⊨[ + ] P
-       → ⟦ f ⟧ σ w ⊨[ + ] Q
+       → execute f σ w ⊨[ + ] Q
 sound' {Γ}{f}{P}{Q}{σ} wfσ Γ⊢f∶P↓₊↝Q↓₊ {w} w⊨₊P = ↓-sound h
-  where h : ⟦ f ⟧ σ w ∈⟨ Q ↓₊ ⟩
+  where h : execute f σ w ∈⟨ Q ↓₊ ⟩
         h = sound wfσ Γ⊢f∶P↓₊↝Q↓₊ (↓-complete w⊨₊P) 
 
 
