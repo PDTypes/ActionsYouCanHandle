@@ -14,12 +14,12 @@ State = List A
 infix 3 _<:_
 data _<:_ : State → State → Set where
   []<:_ : ∀ Q → Q <: []
-  atom<: : ∀{x P Q} → x ∈ P → P <: Q → P <: x ∷ Q
+  atom<: : ∀{x P Q} → x ∈ Q → Q <: P → Q <: x ∷ P
 
 -- Extension of subtyping
-<:atom : (P : State) -> (Q : State) -> (s : A) -> P <: Q -> s ∷ P <: Q
-<:atom P .[] s ([]<: .P) = []<: (s ∷ P)
-<:atom P .(_ ∷ _) s (atom<: x x₁) = atom<: (there x) (<:atom P _ s x₁)
+<:atom : (P : State) -> (Q : State) -> (s : A) -> Q <: P -> s ∷ Q <: P
+<:atom .[] Q s ([]<: .Q) = []<: (s ∷ Q) 
+<:atom (p ∷ P) Q s (atom<: x₂ x₁) = atom<: (there x₂) (<:atom P Q s x₁)
 
 -- Reflexivity of subtyping
 reflSub : (S : State) -> S <: S
@@ -49,3 +49,5 @@ decSub (p ∷ P) Q | no ¬p = no (λ { (atom<: x₁ x) → ¬p x₁})
 decSub (p ∷ P) Q | yes p₁ with decSub P Q
 decSub (p ∷ P) Q | yes p₁ | no ¬p = no (λ { (atom<: x₁ x) → ¬p x})
 decSub (p ∷ P) Q | yes p₁ | yes p₂ = yes (atom<: p₁ p₂)
+
+

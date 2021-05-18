@@ -34,5 +34,5 @@ open ActionDescription
 
 WfHandler : Context → ActionHandler → Set
 WfHandler Γ σ =
-  ∀{α P} → preconditions (Γ α) <: P → ∀{w} → w ∈⟨ P ⟩ → σ α w ∈⟨ P ⊔N effects (Γ α) ⟩
+  ∀{α P} →  P <: preconditions (Γ α) → ∀{w} → w ∈⟨ P ⟩ → σ α w ∈⟨ P ⊔N effects (Γ α) ⟩
 

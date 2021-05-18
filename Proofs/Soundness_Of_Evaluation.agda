@@ -17,24 +17,22 @@ open import MembershipAndStateTyped Action R Type C isDE
 open import Subtyping PredMap isSame hiding (State)
 open import ActionHandler Action R Type C isDE 
 
-<:-resp-∈ : ∀{N M} → N <: M → ∀{w} → w ∈⟨ M ⟩ → w ∈⟨ N ⟩
+<:-resp-∈ : ∀{N M} → M <: N → ∀{w} → w ∈⟨ M ⟩ → w ∈⟨ N ⟩
 <:-resp-∈ ([]<: N) w∈⟨M⟩ = (λ _ ()) , λ _ ()
 <:-resp-∈ (atom<: {x}{N}{M} tx∈M N<:M) {w} w∈⟨M⟩ = lt , rt where
   ih : w ∈⟨ N ⟩
-  ih = <:-resp-∈ N<:M w∈⟨M⟩
+  ih = <:-resp-∈ N<:M w∈⟨M⟩  
   lt : ∀ a' → (+ , a') ∈ x ∷ N → a' ∈ w
   lt a' (here px) =  proj₁ w∈⟨M⟩ a' (subst (λ tx → tx ∈ M) (Relation.Binary.PropositionalEquality.sym px) tx∈M)
   lt a' (there +a'∈N) = proj₁ ih a' +a'∈N
   rt : ∀ a' → (- , a') ∈ x ∷ N → a' ∉ w
   rt a' (here px) a'∈w =
     proj₂ w∈⟨M⟩ a' (subst (λ tx → tx ∈ M) (Relation.Binary.PropositionalEquality.sym px) tx∈M) a'∈w
-  rt a' (there -a'∈N) a'∈w = proj₂ ih a' -a'∈N a'∈w
+  rt a' (there -a'∈N) a'∈w = proj₂ ih a' -a'∈N a'∈w 
 
 ---------------------------------------------------------------
 -- Theorem 2: Soundness of evaluation of normalised formula
 --
-
-{-
 sound : ∀{w σ M Γ f N}
       → WfHandler Γ σ
       → Γ ⊢ f ∶ M ↝ N
@@ -43,7 +41,7 @@ sound : ∀{w σ M Γ f N}
 sound wfσ (halt N<:M) w∈⟨M⟩ = <:-resp-∈ N<:M w∈⟨M⟩
 sound {w}{σ}{M}{Γ} wfσ (seq {α}{M₁} M₁'<:M Γ⊢f∶M⊔M₂↝N) w∈⟨M⟩ =
   sound wfσ Γ⊢f∶M⊔M₂↝N σαw∈⟨M⊔NM₂⟩
-  where σαw∈⟨M⊔NM₂⟩ : σ α w ∈⟨ M ⊔N proj₂ (Γ α) ⟩
+  where σαw∈⟨M⊔NM₂⟩ : σ α w ∈⟨ M ⊔N effects (Γ α) ⟩
         σαw∈⟨M⊔NM₂⟩ = wfσ M₁'<:M w∈⟨M⟩
 
 ---------------------------------------------------------------
@@ -51,7 +49,7 @@ sound {w}{σ}{M}{Γ} wfσ (seq {α}{M₁} M₁'<:M Γ⊢f∶M⊔M₂↝N) w∈�
 --
 
 
-open import Proofs.Possible_World_Soundness {Action} {R} {C}
+open import Proofs.Possible_World_Soundness Action R Type C
 
 sound' : ∀{Γ f P Q σ}
        → WfHandler Γ σ
@@ -60,7 +58,7 @@ sound' : ∀{Γ f P Q σ}
        → ⟦ f ⟧ σ w ⊨[ + ] Q
 sound' {Γ}{f}{P}{Q}{σ} wfσ Γ⊢f∶P↓₊↝Q↓₊ {w} w⊨₊P = ↓-sound h
   where h : ⟦ f ⟧ σ w ∈⟨ Q ↓₊ ⟩
-        h = sound wfσ Γ⊢f∶P↓₊↝Q↓₊ (↓-complete w⊨₊P) -}
+        h = sound wfσ Γ⊢f∶P↓₊↝Q↓₊ (↓-complete w⊨₊P) 
 
 
 ---------------------------------------------------------------
