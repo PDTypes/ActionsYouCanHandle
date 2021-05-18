@@ -7,15 +7,9 @@ open import Relation.Nullary
 module ActionHandler (Action : Set) (Predicate : Set) (Type : Set) (Object : Type -> Set) (isDE : IsDecEquivalence {A = Predicate} (_≡_) )
       where
 
-<<<<<<< HEAD
 open import GrammarTypes Action Predicate Type Object 
 open import MembershipAndStateTyped Action Predicate Type Object isDE 
-open import Subtyping PredMap isSame hiding (State)
-=======
-open import GrammarTypes Action R Type C 
-open import MembershipAndStateTyped Action R Type C isDE 
-open import Subtyping PredMap isSame using (_<:_)
->>>>>>> efa175fd680b15a32a2f4e99c2f7d8d7a1dd4ce6
+open import Subtyping PredMap isSame 
                                               
 -- Action Handler
 ActionHandler : Set
@@ -41,4 +35,22 @@ open ActionDescription
 WfHandler : Context → ActionHandler → Set
 WfHandler Γ σ =
   ∀{α P} →  P <: preconditions (Γ α) → ∀{w} → w ∈⟨ P ⟩ → σ α w ∈⟨ P ⊔N effects (Γ α) ⟩
+
+open IsDecEquivalence isDE renaming (_≟_ to _≟ᵣ_)
+
+-- Remove a predicate R from a world.
+remove : Predicate → World → World
+remove x [] = []
+remove x (y ∷ w) with x ≟ᵣ y
+remove x (y ∷ w) | yes p = remove x w
+remove x (y ∷ w) | no ¬p = y ∷ remove x w
+
+-- World constructor from state
+σα : State → World → World
+σα [] w = w
+σα ((+ , x) ∷ N) w = x ∷ σα N w
+σα ((- , x) ∷ N) w = remove x (σα N w)
+
+canonical-σ : Context → ActionHandler
+canonical-σ Γ α = σα (effects (Γ α))
 

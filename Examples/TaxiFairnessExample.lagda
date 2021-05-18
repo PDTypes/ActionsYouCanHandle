@@ -15,17 +15,14 @@ open import Function.Base
 open import Examples.Gender
 open import Relation.Nullary.Decidable
 open import Data.Unit
-
+open Data.Product
 open import Examples.TaxiDomain
-
+open import GrammarTypes Action Predicate Type Object hiding (¬_)
+open import PCPlansTyped Action Predicate Type Object isDecidable
+open import Agda.Builtin.FromNat
+open import Data.Maybe
 
 module Examples.TaxiFairnessExample  where
-
-open import GrammarTypes Action R Type C hiding (¬_)
-
-----------------------------------------------------------------------------------------
-
-open import Data.Product
 
 -- Action Context which defines the preconditions and effects of Actions.
 
@@ -46,52 +43,40 @@ open import Data.Product
               (+ , taxiIn t1 l2) ∷ [] }
 
 
-----------------------------------------------------------------------------------------
-
-
-open Data.Product
-open import PCPlansTyped Action R Type C isDecidable
-open import Data.Maybe
 
 
 
-
-----------------------------------------------------------------------------------------
--- Examples with handlers 
-
-{-
-
---Example Evaluation 
-P : State
-P =
-  (+ , taxiIn taxi1 location1) ∷
-  (+ , taxiIn taxi2 location2) ∷
-  (+ , taxiIn taxi3 location3) ∷
-  (+ , personIn person1 location1) ∷
-  (+ , personIn person2 location2) ∷
-  (+ , personIn person3 location3) ∷
+initialState : State
+initialState =
+  (+ , taxiIn (taxi 0) (location 0)) ∷
+  (+ , taxiIn (taxi 1) (location 1)) ∷
+  (+ , taxiIn (taxi 2) (location 2)) ∷
+  (+ , personIn (person 0) (location 0)) ∷
+  (+ , personIn (person 1) (location 1)) ∷
+  (+ , personIn (person 2) (location 2)) ∷
   []
 
-Q : State
-Q =
-  (+ , taxiIn taxi1 location2) ∷
-  (+ , personIn person1 location3) ∷
-  (+ , personIn person3 location1) ∷
+goalState : State
+goalState =
+  (+ , taxiIn (taxi 0) (location 1)) ∷
+  (+ , personIn (person 0) (location 2)) ∷
+  (+ , personIn (person 2) (location 0)) ∷
   []
 
 planₜ : Plan
-planₜ = (drive taxi1 location1 location2) ∷
-        (drivePassenger taxi3 person3 location3 location1) ∷
-        (drivePassenger taxi3 person1 location1 location3) ∷
+planₜ = (drive (taxi 0) (location 0) (location 1)) ∷
+        (drivePassenger (taxi 2) (person 2) (location 2) (location 0)) ∷
+        (drivePassenger (taxi 2) (person 0) (location 0) (location 2)) ∷
         halt
 
-open import Tutorial.TaxiTyped3 getGender noOfGender 4
 
-Derivation : Γ ⊢ planₜ ∶ P ↝ Q
-Derivation = from-just (solver Γ planₜ P Q)
+Derivation : Γ ⊢ planₜ ∶ initialState ↝ goalState
+Derivation = from-just (solver Γ planₜ initialState goalState)
+
+open import ActionHandler Action Predicate Type Object isDecidable
 
 finalState : World
-finalState = execute planₜ (canonical-σ Γ) (σα P [])
+finalState = execute planₜ (canonical-σ Γ) (σα initialState [])
 
 {-
 Output:
@@ -108,6 +93,8 @@ Output:
 -- Relation between NPred and World
 --_∈⟨_⟩ : World → NPred → Set
 --w ∈⟨ N ⟩ = (∀ a → (+ , a) ∈ N → a ∈ w) × (∀ a → (- , a) ∈ N → a ∉ w)
+
+
 
 {-
 helper : (a : R) -> (N : State) -> (+ , a) ∈ N -> a ∈ (σα N [])
