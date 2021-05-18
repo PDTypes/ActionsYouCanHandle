@@ -12,7 +12,7 @@ open import Data.Sum
 open import Agda.Builtin.Nat hiding (_<_)
 open import Data.Nat 
 open import Relation.Nullary.Decidable
-open import Gender
+open import Examples.Gender
 open import Examples.TaxiDomainWithProofs
 
 -- Is it possible to access the superset of (C taxi) considering it is finite.
