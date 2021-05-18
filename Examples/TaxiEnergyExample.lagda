@@ -19,12 +19,12 @@ open Data.Product
 open import Examples.TaxiDomain
 open import GrammarTypes Action Predicate Type Object hiding (¬_)
 open import PCPlansTyped Action Predicate Type Object isDecidable
-open import Agda.Builtin.FromNat
 open import Data.Maybe
 
-module Examples.TaxiExample  where
+module Examples.TaxiEnergyExample  where
 
 -- Action Context which defines the preconditions and effects of Actions.
+open import Agda.Builtin.FromNat
 
 Γ : Context
 Γ (drivePassenger t1 p1 l1 l2) =
@@ -70,18 +70,12 @@ planₜ = (drive (taxi 0) (location 0) (location 1)) ∷
 Derivation : Γ ⊢ planₜ ∶ initialState ↝ goalState
 Derivation = from-just (solver Γ planₜ initialState goalState)
 
-open import ActionHandler Action Predicate Type Object isDecidable
+open import Examples.Energy
 
+--Here we give a fuel level 1 higher than needed as the σα' function takes 1 energy to initialise
 finalState : World
-finalState = execute planₜ (canonical-σ Γ) (σα initialState [])
+finalState = from-inj₁ (executeWithFuel planₜ (enriched-σ Γ) (σα' initialState ([] , fuel 4)))
 
-{-
-Output:
-  taxiIn taxi3 location3 ∷
-  personIn person1 location3 ∷
-  personIn person3 location1 ∷
-  taxiIn taxi1 location2 ∷
-  taxiIn taxi2 location2 ∷
-  personIn person2 location2 ∷ []
--}
+finalStateError : OutOfFuelError
+finalStateError = from-inj₂ (executeWithFuel planₜ (enriched-σ Γ) (σα' initialState ([] , fuel 3)))
 
