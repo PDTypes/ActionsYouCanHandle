@@ -3,7 +3,6 @@ open import Relation.Binary.PropositionalEquality
 open import Data.Product
 open import Data.List hiding (any)
 open import Relation.Nullary
-open import AnyLemma
 
 module ActionHandler (Action : Set) (R : Set) (Type : Set) (C : Type -> Set) (isDE : IsDecEquivalence {A = R} (_≡_) )
       where

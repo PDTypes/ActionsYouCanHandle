@@ -63,14 +63,14 @@ open import AnyLemma
 ∈-transport-l : ∀ a {t1} t P M N -> (t1 , a) ∈ ( M ++ (P ↓[ t ] N))
   -> (t1 , a) ∈ ((M ++ (P ↓[ t ] [])) ++ N)
 ∈-transport-l a₁ {t₁} t P M N x
-  = any-cong {zero} {zero} {Polarity × R} {λ _ → R} x (lemma-transport-l t P M N)
+  = subst ((t₁ , a₁) ∈_) (lemma-transport-l t P M N) x
 
 
 
 ∈-transport-r : ∀ a {t1} t P M N -> (t1 , a) ∈ ((M ++ (P ↓[ t ] [])) ++ N)
   -> (t1 , a) ∈ ( M ++ (P ↓[ t ] N))
 ∈-transport-r a₁ t P M N x
-  = any-cong {zero} {zero} {Polarity × R} {λ _ → R}  x (sym (lemma-transport-l t P M N))
+  = subst (_ ∈_) ((sym (lemma-transport-l t P M N))) x
 
 --
 -- exchange for the underlying representation (was cAny)

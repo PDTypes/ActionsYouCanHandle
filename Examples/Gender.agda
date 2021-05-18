@@ -1,7 +1,7 @@
 open import Relation.Binary.PropositionalEquality
 open import Relation.Nullary
 
-module Gender where
+module Examples.Gender where
 
 data Gender : Set where
   male female other : Gender

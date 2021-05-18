@@ -12,9 +12,8 @@ open import Relation.Nullary
 open import Data.Empty
 open import Data.Unit hiding (_≟_)
 open IsDecEquivalence isDE hiding (refl)
-open import AnyLemma
 open import Data.List hiding (any)
-
+open import Data.List.Relation.Unary.Any using (Any; any?; here; there)
 
 -- New Definitions Of Membership -----------------------------------------------------------------
 
