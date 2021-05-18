@@ -7,7 +7,6 @@ open import Level
 
 --------------------------------------------------------
 --  Definition of formulae, possible world semantics, actions, plans
-
 --
 -- The following module declarartion allows to develop the file parametrised on an abstract set R of predicates
 -- an an abstract set A of declared actions. The former must have decidable equivalence.
@@ -20,23 +19,17 @@ open import Agda.Builtin.Nat hiding (_*_ ; _+_ ; _-_; zero)
 open import Data.Vec hiding (_++_; remove)
 open import Data.List hiding (any)
 open import Data.Product
-
+open import Data.Maybe
+open import Relation.Nullary
 open import GrammarTypes Action Predicate Type Object
 open import MembershipAndStateTyped Action Predicate Type Object isDE 
-open import Subtyping PredMap isSame hiding (State)
+open import Subtyping PredMap isSame
 
 ---------------------------------------------------------------
 -- Figure 10: well-typing relation
 --
 
-{-
-record ActionDescription : Set where
-  field
-    preconditions : NPred
-    effects : NPred -}
-
-preconditions = ActionDescription.preconditions
-effects = ActionDescription.effects
+open ActionDescription using (preconditions; effects)
     
 data _⊢_∶_↝_ : Context → Plan → State → State → Set where
   halt : ∀{Γ currentState  goalState} → currentState <: goalState
@@ -49,17 +42,14 @@ data _⊢_∶_↝_ : Context → Plan → State → State → Set where
       
 ---------------------------------------------------------------
 
-open import Data.Maybe
-open import Relation.Nullary
-
 --We could create an error data type for errors
-solver : (Γ₁ : Context) -> (f : Plan) -> (P : State) -> (Q : State) ->  Maybe (Γ₁ ⊢ f ∶ P ↝ Q)
-solver Γ₁ (x ∷ f) P Q with decSub (preconditions (Γ₁ x)) P
+solver : (Γ : Context) -> (f : Plan) -> (P Q : State) ->  Maybe (Γ ⊢ f ∶ P ↝ Q)
+solver Γ (x ∷ f) P Q with P <:? (preconditions (Γ x)) 
 ... | no ¬p = nothing
-... | yes p with solver Γ₁ f (P ⊔N (effects (Γ₁ x))) Q
+... | yes p with solver Γ f (P ⊔N (effects (Γ x))) Q
 ... | nothing = nothing
 ... | just x₁ = just (seq p x₁)
-solver Γ₁ halt P Q with decSub Q P
+solver Γ halt P Q with P <:? Q
 ... | no ¬p = nothing
 ... | yes p = just (halt p)
 

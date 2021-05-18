@@ -18,16 +18,17 @@ open import Subtyping PredMap isSame hiding (State)
 open import ActionHandler Action Predicate Type Object isDE 
 
 <:-resp-∈ : ∀{N M} → M <: N → ∀{w} → w ∈⟨ M ⟩ → w ∈⟨ N ⟩
-<:-resp-∈ ([]<: N) w∈⟨M⟩ = (λ _ ()) , λ _ ()
-<:-resp-∈ (atom<: {x}{N}{M} tx∈M N<:M) {w} w∈⟨M⟩ = lt , rt where
+<:-resp-∈ {[]} {M} []<:N w∈⟨M⟩ = (λ _ ()) , λ _ ()
+<:-resp-∈ {x ∷ N} {M} M<:x∷N {w} w∈⟨M⟩ = lt , rt where
   ih : w ∈⟨ N ⟩
-  ih = <:-resp-∈ N<:M w∈⟨M⟩  
+  ih = <:-resp-∈ (weakSub _ _ _ M<:x∷N) w∈⟨M⟩
+  
   lt : ∀ a' → (+ , a') ∈ x ∷ N → a' ∈ w
-  lt a' (here px) =  proj₁ w∈⟨M⟩ a' (subst (λ tx → tx ∈ M) (Relation.Binary.PropositionalEquality.sym px) tx∈M)
+  lt a' (here refl) =  proj₁ w∈⟨M⟩ a' (M<:x∷N (here refl))
   lt a' (there +a'∈N) = proj₁ ih a' +a'∈N
+
   rt : ∀ a' → (- , a') ∈ x ∷ N → a' ∉ w
-  rt a' (here px) a'∈w =
-    proj₂ w∈⟨M⟩ a' (subst (λ tx → tx ∈ M) (Relation.Binary.PropositionalEquality.sym px) tx∈M) a'∈w
+  rt a' (here refl) a'∈w = proj₂ w∈⟨M⟩ a' (M<:x∷N (here refl)) a'∈w
   rt a' (there -a'∈N) a'∈w = proj₂ ih a' -a'∈N a'∈w 
 
 ---------------------------------------------------------------

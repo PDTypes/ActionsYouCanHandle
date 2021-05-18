@@ -7,9 +7,15 @@ open import Relation.Nullary
 module ActionHandler (Action : Set) (Predicate : Set) (Type : Set) (Object : Type -> Set) (isDE : IsDecEquivalence {A = Predicate} (_≡_) )
       where
 
+<<<<<<< HEAD
 open import GrammarTypes Action Predicate Type Object 
 open import MembershipAndStateTyped Action Predicate Type Object isDE 
 open import Subtyping PredMap isSame hiding (State)
+=======
+open import GrammarTypes Action R Type C 
+open import MembershipAndStateTyped Action R Type C isDE 
+open import Subtyping PredMap isSame using (_<:_)
+>>>>>>> efa175fd680b15a32a2f4e99c2f7d8d7a1dd4ce6
                                               
 -- Action Handler
 ActionHandler : Set
