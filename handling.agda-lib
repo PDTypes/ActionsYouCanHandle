@@ -1,2 +1,3 @@
 name: handling-with-care
 include: .
+depend: standard-library-1.6
