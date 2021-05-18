@@ -9,7 +9,7 @@ module ActionHandler (Action : Set) (R : Set) (Type : Set) (C : Type -> Set) (is
 
 open import GrammarTypes Action R Type C 
 open import MembershipAndStateTyped Action R Type C isDE 
-open import Subtyping PredMap isSame hiding (State)
+open import Subtyping PredMap isSame using (_<:_)
                                               
 -- Action Handler
 ActionHandler : Set
