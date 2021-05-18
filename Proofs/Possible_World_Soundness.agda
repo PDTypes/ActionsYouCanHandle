@@ -58,7 +58,6 @@ lemma-transport-l t (¬ x) M N = sym (++-assoc M (((neg t) , x) ∷ []) N)
 lemma-transport-l t (atom x) M N = sym (++-assoc M ((t , x) ∷ []) N)
 
 open import Level
-open import AnyLemma
 
 ∈-transport-l : ∀ a {t1} t P M N -> (t1 , a) ∈ ( M ++ (P ↓[ t ] N))
   -> (t1 , a) ∈ ((M ++ (P ↓[ t ] [])) ++ N)
