@@ -12,6 +12,7 @@ open import Plans.Domain
 
 module Plans.Proofs.Soundness_Of_Evaluation (domain : Domain) where
 
+open Domain domain
 open import Plans.GrammarTypes domain
 open import Plans.PCPlansTyped domain 
 open import Plans.MembershipAndStateTyped domain
