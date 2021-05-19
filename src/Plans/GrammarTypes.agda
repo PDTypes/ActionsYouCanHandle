@@ -1,4 +1,8 @@
-module GrammarTypes  (Action : Set) (Predicate : Set) (Type : Set) (Object : Type -> Set) where
+open import Plans.Domain
+
+module Plans.GrammarTypes  (domain : Domain) where
+
+open Domain domain
 
 data Form : Set where
   _∧_ : Form → Form → Form

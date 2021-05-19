@@ -7,7 +7,7 @@ open import Data.List.Relation.Unary.Any
 open import Relation.Nullary
 open import Relation.Binary
 
-module Subtyping (A : Set) (decA : DecidableEquality A) where
+module Plans.Subtyping (A : Set) (decA : DecidableEquality A) where
 
 open import Data.List.Membership.DecPropositional decA
 

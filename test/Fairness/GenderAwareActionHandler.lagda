@@ -12,12 +12,16 @@ open import Data.Sum
 open import Agda.Builtin.Nat hiding (_<_)
 open import Data.Nat 
 open import Relation.Nullary.Decidable
-open import Examples.Gender
-open import Examples.TaxiDomain
 open import Agda.Builtin.Unit
 open import Data.String hiding (_<_ ; _<?_; _≟_ )
+open import Relation.Nullary
+open import Data.Maybe
 
-module Examples.TaxiTyped  (getGender : Object taxi → Gender)
+open import TaxiDomain
+open import Fairness.Gender
+open import Plans.GrammarTypes taxiDomain hiding (¬_)
+
+module Fairness.GenderAwareActionHandler (getGender : Object taxi → Gender)
                            (margin : Nat) where
 
 variable
@@ -25,12 +29,9 @@ variable
 
 -- This imports our typed planning Grammar
 
-open import GrammarTypes Action Predicate Type Object hiding (¬_)
 
 ----------------------------------------------------------------------------------------
 
-open import Relation.Nullary
-open import Data.Maybe
 
 
 

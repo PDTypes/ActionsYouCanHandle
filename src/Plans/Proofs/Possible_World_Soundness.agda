@@ -6,9 +6,12 @@ open import Data.List.Membership.Propositional
 open import Data.List.Relation.Unary.Any
 open import Data.List hiding (any)
 
-module Proofs.Possible_World_Soundness (Action : Set) (Predicate : Set) (Type : Set) (Object : Type -> Set) where
+open import Plans.Domain
 
-open import GrammarTypes Action Predicate Type Object
+module Plans.Proofs.Possible_World_Soundness (domain : Domain) where
+
+open Domain domain
+open import Plans.GrammarTypes domain
 
 --------------------------------------------------------
 -- Code for the Soundness and Completeness proofs

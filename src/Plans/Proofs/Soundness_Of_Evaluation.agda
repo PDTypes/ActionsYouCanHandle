@@ -8,14 +8,16 @@ open import Data.List hiding (any)
 open import Data.Empty
 open import Data.List.Relation.Unary.Any
 
+open import Plans.Domain
 
-module Proofs.Soundness_Of_Evaluation {Action : Set} {Predicate : Set} {Type : Set} {Object : Type -> Set} {isDE : IsDecEquivalence {A = Predicate} (_≡_) } where
+module Plans.Proofs.Soundness_Of_Evaluation (domain : Domain) where
 
-open import GrammarTypes Action Predicate Type Object
-open import PCPlansTyped Action Predicate Type Object isDE 
-open import MembershipAndStateTyped Action Predicate Type Object isDE 
-open import Subtyping PredMap isSame 
-open import ActionHandler Action Predicate Type Object isDE 
+open import Plans.GrammarTypes domain
+open import Plans.PCPlansTyped domain 
+open import Plans.MembershipAndStateTyped domain
+open import Plans.Subtyping PredMap isSame 
+open import Plans.ActionHandler domain
+open import Plans.Proofs.Possible_World_Soundness domain
 
 <:-resp-∈ : ∀{N M} → M <: N → ∀{w} → w ∈⟨ M ⟩ → w ∈⟨ N ⟩
 <:-resp-∈ {[]} {M} []<:N w∈⟨M⟩ = (λ _ ()) , λ _ ()
@@ -52,9 +54,6 @@ sound {w}{σ}{M}{Γ} wfσ (seq {α}{M₁} M₁'<:M Γ⊢f∶M⊔M₂↝N) w∈�
 -- Theorem 3: Soundness of evaluation
 --
 
-
-open import Proofs.Possible_World_Soundness Action Predicate Type Object
-
 sound' : ∀{Γ f P Q σ}
        → WfHandler Γ σ
        → Γ ⊢ f ∶ (P ↓₊) ↝ (Q ↓₊)
@@ -63,6 +62,3 @@ sound' : ∀{Γ f P Q σ}
 sound' {Γ}{f}{P}{Q}{σ} wfσ Γ⊢f∶P↓₊↝Q↓₊ {w} w⊨₊P = ↓-sound h
   where h : execute f σ w ∈⟨ Q ↓₊ ⟩
         h = sound wfσ Γ⊢f∶P↓₊↝Q↓₊ (↓-complete w⊨₊P) 
-
-
----------------------------------------------------------------

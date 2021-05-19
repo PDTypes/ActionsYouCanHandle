@@ -4,12 +4,14 @@ open import Data.Product
 open import Data.List hiding (any)
 open import Relation.Nullary
 
-module ActionHandler (Action : Set) (Predicate : Set) (Type : Set) (Object : Type -> Set) (isDE : IsDecEquivalence {A = Predicate} (_≡_) )
-      where
+open import Plans.Domain
 
-open import GrammarTypes Action Predicate Type Object 
-open import MembershipAndStateTyped Action Predicate Type Object isDE 
-open import Subtyping PredMap isSame 
+module Plans.ActionHandler (domain : Domain) where
+
+open Domain domain
+open import Plans.GrammarTypes domain 
+open import Plans.MembershipAndStateTyped domain
+open import Plans.Subtyping PredMap isSame 
                                               
 -- Action Handler
 ActionHandler : Set
@@ -36,12 +38,10 @@ WfHandler : Context → ActionHandler → Set
 WfHandler Γ σ =
   ∀{α P} →  P <: preconditions (Γ α) → ∀{w} → w ∈⟨ P ⟩ → σ α w ∈⟨ P ⊔N effects (Γ α) ⟩
 
-open IsDecEquivalence isDE renaming (_≟_ to _≟ᵣ_)
-
 -- Remove a predicate R from a world.
 remove : Predicate → World → World
 remove x [] = []
-remove x (y ∷ w) with x ≟ᵣ y
+remove x (y ∷ w) with x ≟ₚ y
 remove x (y ∷ w) | yes p = remove x w
 remove x (y ∷ w) | no ¬p = y ∷ remove x w
 

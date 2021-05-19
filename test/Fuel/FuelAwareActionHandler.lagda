@@ -12,17 +12,17 @@ open import Data.Sum
 open import Agda.Builtin.Nat hiding (_<_)
 open import Data.Nat 
 open import Relation.Nullary.Decidable
-open import Examples.Gender
-open import Examples.TaxiDomain
 open import Relation.Nullary
 open import Data.Maybe
 
+open import TaxiDomain
 
-module Examples.Energy where
+open import Plans.GrammarTypes taxiDomain hiding (¬_)
+
+module Fuel.FuelAwareActionHandler where
+
 variable
   n m : Nat
-
-open import GrammarTypes Action Predicate Type Object hiding (¬_)
 
 ----------------------------------------------------------------------------------------
 

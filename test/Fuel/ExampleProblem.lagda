@@ -12,17 +12,19 @@ open import Data.Sum
 open import Agda.Builtin.Nat hiding (_+_ ; _-_)
 open import Data.List
 open import Function.Base
-open import Examples.Gender
 open import Relation.Nullary.Decidable
 open import Data.Unit
 open Data.Product
-open import Examples.TaxiDomain
-open import GrammarTypes Action Predicate Type Object hiding (¬_)
-open import PCPlansTyped Action Predicate Type Object isDecidable
-open import Agda.Builtin.FromNat
 open import Data.Maybe
+open import Agda.Builtin.FromNat
 
-module Examples.TaxiFairnessExample  where
+open import TaxiDomain
+open import Fuel.FuelAwareActionHandler
+
+open import Plans.GrammarTypes taxiDomain hiding (¬_)
+open import Plans.PCPlansTyped taxiDomain
+
+module Fuel.ExampleProblem  where
 
 -- Action Context which defines the preconditions and effects of Actions.
 
@@ -67,48 +69,14 @@ planₜ = (drive (taxi 0) (location 0) (location 1)) ∷
         halt
 
 
-
--- The below function asks us to construct in our type system that applying plan₁ to P entails Q given the context Γ₁
--- This has been proven true in our type system using our automated solver function.
 Derivation : Γ ⊢ planₜ ∶ initialState ↝ goalState
 Derivation = from-just (solver Γ planₜ initialState goalState)
 
--- percentage of variance allowed for lowerbound
--- 100/4= 25%
-open import Examples.TaxiTyped getGender 4 
 
-tripsTaken : Gender -> Nat
-tripsTaken x = 0
-
+--Here we give a fuel level 1 higher than needed as the σα' function takes 1 energy to initialise
 finalState : World
-finalState = from-inj₁ (execute' planₜ (canonical-σ Γ) tripsTaken (σα initialState []))
+finalState = from-inj₁ (executeWithFuel planₜ (enriched-σ Γ) (σα' initialState ([] , fuel 4)))
 
--------------------------------------------------------------------------------
+finalStateError : OutOfFuelError
+finalStateError = from-inj₂ (executeWithFuel planₜ (enriched-σ Γ) (σα' initialState ([] , fuel 3)))
 
---30
--- 66% assigned
--- 50%
-tripsTaken2 : Gender -> Nat
-tripsTaken2 male = 30
-tripsTaken2 female = 11
-tripsTaken2 other = 0
-
-finalState2 : World
-finalState2 = from-inj₁ (execute' planₜ (canonical-σ Γ) tripsTaken2 (σα initialState []))
-
---------------------------------------------------------------------------------------------
-
-tripsTaken3 : Gender -> Nat
-tripsTaken3 male = 30
-tripsTaken3 female = 9
-tripsTaken3 other = 0
-
-finalStateError : Error
-finalStateError = from-inj₂ (execute' planₜ (canonical-σ Γ) tripsTaken3 (σα initialState []))
-
-open import Data.String
-
-displayErrorMessage : (String × Action)
-displayErrorMessage = errorMessage finalStateError
-
-\end{code}

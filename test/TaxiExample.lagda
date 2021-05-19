@@ -12,17 +12,19 @@ open import Data.Sum
 open import Agda.Builtin.Nat hiding (_+_ ; _-_)
 open import Data.List
 open import Function.Base
-open import Examples.Gender
 open import Relation.Nullary.Decidable
 open import Data.Unit
 open Data.Product
-open import Examples.TaxiDomain
-open import GrammarTypes Action Predicate Type Object hiding (¬_)
-open import PCPlansTyped Action Predicate Type Object isDecidable
 open import Agda.Builtin.FromNat
 open import Data.Maybe
 
-module Examples.TaxiExample  where
+open import TaxiDomain
+
+open import Plans.GrammarTypes taxiDomain hiding (¬_)
+open import Plans.PCPlansTyped taxiDomain
+open import Plans.ActionHandler taxiDomain
+
+module TaxiExample where
 
 -- Action Context which defines the preconditions and effects of Actions.
 
@@ -69,8 +71,6 @@ planₜ = (drive (taxi 0) (location 0) (location 1)) ∷
 
 Derivation : Γ ⊢ planₜ ∶ initialState ↝ goalState
 Derivation = from-just (solver Γ planₜ initialState goalState)
-
-open import ActionHandler Action Predicate Type Object isDecidable
 
 finalState : World
 finalState = execute planₜ (canonical-σ Γ) (σα initialState [])

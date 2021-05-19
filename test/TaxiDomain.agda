@@ -1,12 +1,9 @@
-module Examples.TaxiDomain where
-
 open import Relation.Binary.PropositionalEquality
 open import Relation.Binary
 open import Data.List
 open import Data.List.Relation.Unary.Any
 open import Relation.Nullary using (yes; no; Dec)
 open import Level hiding (suc)
--- open import Tactic.Deriving.Eq
 open import Data.Nat hiding (suc ; zero ; _<_; _≟_) renaming (ℕ to Nat)
 import Data.Nat.Literals as NatLiterals
 open import Data.Fin using (Fin; #_; fromℕ<; toℕ)
@@ -16,10 +13,9 @@ open import Relation.Nullary.Decidable using (True)
 open import Data.Nat using (suc; _≤?_) 
 open import Agda.Builtin.Unit
 
---  taxi : ∀ (i : Fin 4) -> C taxi
--- Data.Fin.Literals or Patterns
+open import Plans.Domain
 
--- Types for out domai
+module TaxiDomain where
 
 -- Types for out domain.
 data Type : Set where
@@ -51,7 +47,6 @@ data Action : Set where
   drivePassenger : Object taxi → Object person → Object location → Object location → Action
   drive : Object taxi → Object location → Object location → Action
 
-open import Examples.Gender
 open import Agda.Builtin.FromNat
 
 instance
@@ -62,19 +57,11 @@ instance
   NumFin : ∀ {n} → Number (Fin n)
   NumFin {n} = FinLiterals.number n
 
--- Assign all taxis to a gender
-getGender : Object taxi -> Gender
-getGender (taxi 0F) = male
-getGender (taxi 1F) = female
-getGender (taxi 2F) = male
 
 -- Generate list of all possible taxis
 allTaxis : List (Object taxi)
 allTaxis = Data.List.map taxi (allFin numberOfTaxis)
 
--- return the number of taxis of a specific gender 
-noGender : Gender -> Nat
-noGender g = length (filter (λ t → decGender g (getGender t)) allTaxis)
 
 -----------------------------------------------------------------------------------
 -- The rest is proving decidable equality for all of the above data types.
@@ -145,5 +132,15 @@ isDecidable = record { isEquivalence = record {
   trans = trans } ;
  _≟_ = Predicate?  }
 
+-----------------------------------------------------------------------------------
+-- Domain
+
+taxiDomain : Domain
+taxiDomain = record
+  { Type = Type
+  ; Action = Action
+  ; Predicate = Predicate
+  ; _≟ₚ_ = Predicate?
+  }
 
 
