@@ -1,3 +1,4 @@
+\begin{code}
 open import Relation.Binary
 open import Relation.Binary.PropositionalEquality
 open import Data.List.Membership.Propositional
@@ -94,5 +95,6 @@ del-∈ {(t , z) ∷ M} {y} (there x∈) | no ¬p = there (del-∈ x∈)
 
 -- Override operator
 _⊔N_ : State → State → State
-M ⊔N [] = M
-M ⊔N ((t , x) ∷ N) = (t , x) ∷ del x M ⊔N N
+P ⊔N [] = P
+P ⊔N ((z , q) ∷ Q) = (z , q) ∷ del q P ⊔N Q
+\end{code}

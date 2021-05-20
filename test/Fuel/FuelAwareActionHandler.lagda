@@ -25,7 +25,7 @@ variable
   n m : Nat
 
 ----------------------------------------------------------------------------------------
-
+open import Plans.Domain.Core Type Action Predicate
 
 effects = ActionDescription.effects
 
@@ -69,13 +69,20 @@ getWorld : World × Fuel n -> World
 getWorld (w , e) = w
 
 -- World constructor from state
-σα' : State →  World × Fuel (suc n)
+updateWorld : State → World → World
+updateWorld [] w = w
+updateWorld ((+ , x) ∷ N) w = x ∷ updateWorld N w
+updateWorld ((- , x) ∷ N) w = remove x (updateWorld N w)
+
+updateWorld' : State →  World × Fuel (suc n)
             → World × Fuel n
-σα' [] (w , e) = w , fuel _
-σα' ((+ , s) ∷ S) w = (s ∷ getWorld (σα' S w)) , fuel _
-σα' ((- , s) ∷ S) w = remove s (getWorld (σα' S w)) , fuel _
+updateWorld' [] (w , e) = w , fuel _
+updateWorld' ((+ , s) ∷ S) (w , fuel (suc n))
+  = s ∷ (updateWorld S w) , fuel n 
+updateWorld' ((- , s) ∷ S) (w , fuel (suc n))
+  = remove s (updateWorld S w) , fuel n
 
 enriched-σ : Context → FuelAwareActionHandler
-enriched-σ Γ α = σα' (effects (Γ α ))
+enriched-σ Γ α = updateWorld' (effects (Γ α ))
 
 \end{code}

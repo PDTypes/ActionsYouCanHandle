@@ -28,22 +28,7 @@ module Fuel.ExampleProblem  where
 
 -- Action Context which defines the preconditions and effects of Actions.
 
-Γ : Context
-Γ (drivePassenger t1 p1 l1 l2) =
-  record {
-    preconditions = (+ , taxiIn t1 l1) ∷
-                    (+ , personIn p1 l1) ∷ [] ;
-                    
-    effects = (- , taxiIn t1 l1) ∷
-              (- , personIn p1 l1) ∷
-              (+ , taxiIn t1 l2) ∷
-              (+ , personIn p1 l2) ∷ [] }
-Γ (drive t1 l1 l2) =
-  record {
-    preconditions = (+ , taxiIn t1 l1) ∷ [] ;
-    effects = (- , taxiIn t1 l1) ∷
-              (+ , taxiIn t1 l2) ∷ [] }
-
+open import Plans.Domain.Core Type Action Predicate
 
 initialState : State
 initialState =
@@ -74,9 +59,11 @@ Derivation = from-just (solver Γ planₜ initialState goalState)
 
 
 --Here we give a fuel level 1 higher than needed as the σα' function takes 1 energy to initialise
-finalState : World
-finalState = from-inj₁ (executeWithFuel planₜ (enriched-σ Γ) (σα' initialState ([] , fuel 4)))
+finalState : World ⊎ OutOfFuelError
+finalState = (executeWithFuel planₜ (enriched-σ Γ)
+  (updateWorld' initialState ([] , fuel 4)))
 
+{-
 finalStateError : OutOfFuelError
 finalStateError = from-inj₂ (executeWithFuel planₜ (enriched-σ Γ) (σα' initialState ([] , fuel 3)))
-
+-}

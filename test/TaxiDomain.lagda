@@ -1,3 +1,4 @@
+\begin{code}
 open import Relation.Binary.PropositionalEquality
 open import Relation.Binary
 open import Data.List
@@ -12,7 +13,7 @@ import Data.Fin.Literals as FinLiterals
 open import Relation.Nullary.Decidable using (True)
 open import Data.Nat using (suc; _≤?_) 
 open import Agda.Builtin.Unit
-
+open import Data.Product
 open import Plans.Domain
 
 module TaxiDomain where
@@ -132,15 +133,35 @@ isDecidable = record { isEquivalence = record {
   trans = trans } ;
  _≟_ = Predicate?  }
 
+
 -----------------------------------------------------------------------------------
 -- Domain
 
+open import Plans.Domain.Core Type Action Predicate
+    
+Γ : Context
+Γ (drivePassenger t1 p1 l1 l2) =
+  record {
+    preconditions = (+ , taxiIn t1 l1) ∷
+                    (+ , personIn p1 l1) ∷ [] ;
+                
+    effects = (- , taxiIn t1 l1) ∷
+              (- , personIn p1 l1) ∷
+              (+ , taxiIn t1 l2) ∷
+              (+ , personIn p1 l2) ∷ [] }
+Γ (drive t1 l1 l2) =
+  record {
+    preconditions = (+ , taxiIn t1 l1) ∷ [] ;
+    effects = (- , taxiIn t1 l1) ∷
+              (+ , taxiIn t1 l2) ∷ [] }
+                  
 taxiDomain : Domain
 taxiDomain = record
   { Type = Type
-  ; Action = Action
   ; Predicate = Predicate
-  ; _≟ₚ_ = Predicate?
-  }
-
+  ; Action = Action
+  ; Γ = Γ
+  ; _≟ₚ_ = Predicate? }
+ 
+\end{code}
 

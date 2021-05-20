@@ -28,21 +28,7 @@ module TaxiExample where
 
 -- Action Context which defines the preconditions and effects of Actions.
 
-Γ : Context
-Γ (drivePassenger t1 p1 l1 l2) =
-  record {
-    preconditions = (+ , taxiIn t1 l1) ∷
-                    (+ , personIn p1 l1) ∷ [] ;
-                    
-    effects = (- , taxiIn t1 l1) ∷
-              (- , personIn p1 l1) ∷
-              (+ , taxiIn t1 l2) ∷
-              (+ , personIn p1 l2) ∷ [] }
-Γ (drive t1 l1 l2) =
-  record {
-    preconditions = (+ , taxiIn t1 l1) ∷ [] ;
-    effects = (- , taxiIn t1 l1) ∷
-              (+ , taxiIn t1 l2) ∷ [] }
+
 
 
 initialState : State

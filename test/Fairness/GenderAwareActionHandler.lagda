@@ -33,7 +33,7 @@ variable
 ----------------------------------------------------------------------------------------
 
 
-
+open import Plans.Domain.Core Type Action Predicate
 
 effects = ActionDescription.effects
 
@@ -67,15 +67,15 @@ totalDrivers = _+_ (noGender male) (_+_ (noGender female) (noGender other))
 
 -- Dividing by zero equals zero
 
-zeroDiv : Nat -> Nat -> Nat
-zeroDiv n m with m ≟ 0
+_/₀_ : Nat -> Nat -> Nat
+n /₀ m with m ≟ 0
 ... | yes p = 0 
-zeroDiv n zero | no ¬p = ⊥-elim (¬p _≡_.refl)
-zeroDiv n (suc m) | no ¬p = n / (suc m)
+n /₀ zero | no ¬p = ⊥-elim (¬p _≡_.refl)
+n /₀ (suc m) | no ¬p = n / (suc m)
 
 --percentage of each gender
 percentage : Gender -> Nat
-percentage g = zeroDiv (noGender g * 100) totalDrivers 
+percentage g = (noGender g * 100) /₀ totalDrivers 
 
 -- Cannot have over a 20% difference in taxi allocations from the proportional representation
 -- could move this so it is passed into the module
@@ -100,26 +100,30 @@ TripAgnostic (drive t l1 l2) = ⊤
 -------------------------------------------------------------------------------------------------------
 -- Conditions
 
-UnderMinimumTripThreshold : (f : (Gender -> Nat)) -> Set
-UnderMinimumTripThreshold f = totalTripsTaken f < (totalDrivers * 10)
+UnderMinimumTripThreshold :
+  (tripsTaken : (Gender -> Nat)) -> Set
+UnderMinimumTripThreshold tripsTaken =
+  totalTripsTaken tripsTaken < (totalDrivers * 10)
 
 underMinimumTripThreshold? : (f : (Gender -> Nat)) -> Dec (UnderMinimumTripThreshold f)
 underMinimumTripThreshold? f = totalTripsTaken f <? (totalDrivers * 10)
 
-calculateGenderAssignment : Gender -> (Gender -> Nat) -> Nat 
+calculateGenderAssignment : Gender
+  -> (Gender -> Nat) -> Nat 
 calculateGenderAssignment g f =
-  zeroDiv (f g * 100) (totalTripsTaken f)
+  (f g * 100) /₀ (totalTripsTaken f)
 
 calculateLowerbound : Gender -> Nat  
 calculateLowerbound g =
-  _-_ (percentage g) (zeroDiv (percentage g) margin)
+   (percentage g) ∸ ((percentage g) /₀ margin) 
 
 IsFair : (g : Gender) -> (f : (Gender -> Nat)) -> Set
 IsFair g f =
   calculateGenderAssignment g f  ≥ calculateLowerbound g
 
-isFair? : (g : Gender) -> (f : (Gender -> Nat)) -> Dec (IsFair g f)
-isFair? g f = calculateGenderAssignment g f ≥? calculateLowerbound g
+isFair? : Decidable IsFair
+isFair? g f =
+  calculateGenderAssignment g f ≥? calculateLowerbound g
 
 IsFairForAll : (f : (Gender -> Nat)) -> Set
 IsFairForAll f = ∀ (g : Gender) -> IsFair g f
