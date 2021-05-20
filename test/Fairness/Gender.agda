@@ -1,4 +1,5 @@
 open import Relation.Binary.PropositionalEquality
+open import Relation.Binary
 open import Relation.Nullary
 open import Data.Nat
 open import Data.List
@@ -11,7 +12,7 @@ module Fairness.Gender where
 data Gender : Set where
   male female other : Gender
 
-decGender : (x y : Gender) -> Dec (x ≡ y)
+decGender : DecidableEquality Gender
 decGender male male = yes refl
 decGender male female = no (λ ())
 decGender male other = no (λ ())

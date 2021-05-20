@@ -13,12 +13,13 @@ open import Plans.Domain
 module Plans.Proofs.Soundness_Of_Evaluation (domain : Domain) where
 
 open Domain domain
-open import Plans.GrammarTypes domain
-open import Plans.PCPlansTyped domain 
+open import Plans.Semantics domain
+open import Plans.Plan domain 
 open import Plans.MembershipAndStateTyped domain
 open import Plans.Subtyping PredMap isSame 
 open import Plans.ActionHandler domain
 open import Plans.Proofs.Possible_World_Soundness domain
+open ActionDescription
 
 <:-resp-∈ : ∀{N M} → M <: N → ∀{w} → w ∈⟨ M ⟩ → w ∈⟨ N ⟩
 <:-resp-∈ {[]} {M} []<:N w∈⟨M⟩ = (λ _ ()) , λ _ ()
@@ -36,9 +37,6 @@ open import Plans.Proofs.Possible_World_Soundness domain
 
 ---------------------------------------------------------------
 -- Theorem 2: Soundness of evaluation of normalised formula
---
-
-open ActionDescription
 
 sound : ∀{w σ M Γ f N}
       → WfHandler Γ σ
@@ -53,7 +51,6 @@ sound {w}{σ}{M}{Γ} wfσ (seq {α}{M₁} M₁'<:M Γ⊢f∶M⊔M₂↝N) w∈�
 
 ---------------------------------------------------------------
 -- Theorem 3: Soundness of evaluation
---
 
 sound' : ∀{Γ f P Q σ}
        → WfHandler Γ σ

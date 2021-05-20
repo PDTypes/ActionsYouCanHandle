@@ -9,26 +9,35 @@ open import Data.List.Relation.Unary.Any
 open import Data.Empty
 open import Data.Product
 open import Data.Sum
-open import Agda.Builtin.Nat hiding (_+_ ; _-_)
 open import Data.List
+open import Data.Fin
 open import Function.Base
 open import Relation.Nullary.Decidable
 open import Data.Unit
 open Data.Product
-open import Agda.Builtin.FromNat
+open import Agda.Builtin.FromNat using (Number)
 open import Data.Maybe
+open import Data.Nat
+import Data.Nat.Literals as NatLiterals
+import Data.Fin.Literals as FinLiterals
 
 open import TaxiDomain
 open import Fairness.Gender
 
-open import Plans.GrammarTypes taxiDomain hiding (¬_)
-open import Plans.PCPlansTyped taxiDomain
+open import Plans.ActionHandler taxiDomain
+open import Plans.Semantics taxiDomain
+open import Plans.Plan taxiDomain
 
 module Fairness.ExampleProblem  where
 
--- Action Context which defines the preconditions and effects of Actions.
-
-open import Plans.Domain.Core Type Action Predicate
+instance
+  NumNat : Number ℕ
+  NumNat = NatLiterals.number
+  
+instance
+  NumFin : ∀ {n} → Number (Fin n)
+  NumFin {n} = FinLiterals.number n
+  
 
 initialState : State
 initialState =
@@ -64,34 +73,34 @@ Derivation = from-just (solver Γ planₜ initialState goalState)
 -- 100/4= 25%
 open import Fairness.GenderAwareActionHandler getGender 4 
 
-tripsTaken : Gender -> Nat
+tripsTaken : Gender -> ℕ
 tripsTaken x = 0
 
 finalState : World
-finalState = from-inj₁ (execute' planₜ (canonical-σ Γ) tripsTaken (σα initialState []))
+finalState = from-inj₁ (execute' planₜ (canonical-σ Γ) tripsTaken (updateWorld initialState []))
 
 -------------------------------------------------------------------------------
 
 --30
 -- 66% assigned
 -- 50%
-tripsTaken2 : Gender -> Nat
+tripsTaken2 : Gender -> ℕ
 tripsTaken2 male = 30
 tripsTaken2 female = 11
 tripsTaken2 other = 0
 
 finalState2 : World
-finalState2 = from-inj₁ (execute' planₜ (canonical-σ Γ) tripsTaken2 (σα initialState []))
+finalState2 = from-inj₁ (execute' planₜ (canonical-σ Γ) tripsTaken2 (updateWorld initialState []))
 
 --------------------------------------------------------------------------------------------
 
-tripsTaken3 : Gender -> Nat
+tripsTaken3 : Gender -> ℕ
 tripsTaken3 male = 30
 tripsTaken3 female = 9
 tripsTaken3 other = 0
 
 finalStateError : Error
-finalStateError = from-inj₂ (execute' planₜ (canonical-σ Γ) tripsTaken3 (σα initialState []))
+finalStateError = from-inj₂ (execute' planₜ (canonical-σ Γ) tripsTaken3 (updateWorld initialState []))
 
 open import Data.String
 

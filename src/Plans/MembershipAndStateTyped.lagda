@@ -9,61 +9,58 @@ open import Data.Empty
 open import Data.Unit hiding (_≟_)
 open import Data.List hiding (any)
 open import Data.List.Relation.Unary.Any using (Any; any?; here; there)
+open Data.Product renaming (_,_ to _↝_)
+open import Relation.Nullary
 
 open import Plans.Domain
 
 module Plans.MembershipAndStateTyped (domain : Domain) where
 
 open Domain domain
-open import Plans.GrammarTypes domain
+open import Plans.Semantics domain
 
 
 -- New Definitions Of Membership -----------------------------------------------------------------
 
 --Defining above using Any instead
-_atom≡_ : (a : Predicate) (p : PredMap) -> Set
+_atom≡_ : (a : Predicate) (p : PredMap) → Set
 a atom≡ s = a ≡ proj₂ s
 
-_∈S_ : (a : Predicate) (s : State) -> Set
+_∈S_ : (a : Predicate) (s : State) → Set
 a ∈S s = Any (a atom≡_) s
   
 -- Is an atom not in a State
-_∉S_ : (a : Predicate) (s : State) -> Set
+_∉S_ : (a : Predicate) (s : State) → Set
 a ∉S s = Relation.Nullary.¬ (a ∈S s)
 
-isInState  : (a : Predicate) -> (s : State) -> Dec (a ∈S s)
+isInState  : (a : Predicate) → (s : State) → Dec (a ∈S s)
 isInState a s = any? (λ x → a ≟ₚ proj₂ x) s
--- uses any in Data.List.Relation.Unary.Any renamed to any? in new version of std lib
 
 ------------------------------------------------------------------------------------------------
 
 -- A State is valid if there is no duplicate predicates in the State.
-validState : State -> Set
+validState : State → Set
 validState [] = ⊤
 validState ((t , At') ∷ s) with isInState At' s
 validState ((t , At') ∷ s) | yes p = ⊥
 validState ((t , At') ∷ s) | no ¬p = validState s
 
 --Decidability of State validity
-decValidState : (s : State) -> Dec (validState s)
+decValidState : (s : State) → Dec (validState s)
 decValidState [] = yes tt
 decValidState ((t , At') ∷ s) with isInState At' s
 decValidState ((t , At') ∷ s) | yes p =  no λ ()
 decValidState ((t , At') ∷ s) | no ¬p = decValidState s
 
-
-open Data.Product renaming (_,_ to _↝_)
-open import Relation.Nullary
-
 -- Decidablity of polarities
-decZ : (z : Polarity) -> (z' : Polarity) -> Dec (z ≡ z')
+decZ : DecidableEquality Polarity
 decZ + + = yes refl
 decZ + - = no (λ ())
 decZ - + = no (λ ())
 decZ - - = yes refl
 
 -- Decidablity of PredMaps
-isSame : (s : PredMap) -> (s' : PredMap) -> Dec (s ≡ s')
+isSame : DecidableEquality PredMap
 isSame (z , a) (z' , a') with decZ z z' | a ≟ₚ a'
 isSame (z ↝ a) (.z ↝ .a) | yes refl | yes refl = yes refl
 isSame (z ↝ a) (.z ↝ a') | yes refl | no ¬p = no λ { refl → ¬p refl}

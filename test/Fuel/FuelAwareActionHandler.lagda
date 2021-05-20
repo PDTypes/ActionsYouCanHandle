@@ -9,7 +9,6 @@ open import Data.List.Relation.Unary.Any
 open import Data.Empty
 open import Data.Product
 open import Data.Sum
-open import Agda.Builtin.Nat hiding (_<_)
 open import Data.Nat 
 open import Relation.Nullary.Decidable
 open import Relation.Nullary
@@ -17,41 +16,26 @@ open import Data.Maybe
 
 open import TaxiDomain
 
-open import Plans.GrammarTypes taxiDomain hiding (¬_)
+open import Plans.Plan taxiDomain
+open import Plans.Semantics taxiDomain
+open import Plans.ActionHandler taxiDomain
+open ActionDescription
 
 module Fuel.FuelAwareActionHandler where
 
 variable
-  n m : Nat
+  n m : ℕ
 
 ----------------------------------------------------------------------------------------
-open import Plans.Domain.Core Type Action Predicate
+-- Fuel example
 
-effects = ActionDescription.effects
-
-ActionHandler : Set
-ActionHandler = Action -> World -> World
-
-open IsDecEquivalence  isDecidable renaming (_≟_ to _≟ᵣ_)
-
--- Remove a predicate R from a world.
-remove : Predicate → World → World
-remove x [] = []
-remove x (y ∷ w) with x ≟ᵣ y
-remove x (y ∷ w) | yes p = remove x w
-remove x (y ∷ w) | no ¬p = y ∷ remove x w
-
-data Fuel : Nat → Set where
-  fuel : (n : Nat) → Fuel n
-
-EnergyValue : Fuel n → Nat
-EnergyValue {n} x = n
+data Fuel : ℕ → Set where
+  fuel : (n : ℕ) → Fuel n
 
 FuelAwareActionHandler : Set
 FuelAwareActionHandler = ∀ {n} → Action
                       → World × Fuel (suc n)
                       → World × Fuel n
-
 
 data OutOfFuelError : Set where
   error : Action -> World -> OutOfFuelError
@@ -69,18 +53,8 @@ getWorld : World × Fuel n -> World
 getWorld (w , e) = w
 
 -- World constructor from state
-updateWorld : State → World → World
-updateWorld [] w = w
-updateWorld ((+ , x) ∷ N) w = x ∷ updateWorld N w
-updateWorld ((- , x) ∷ N) w = remove x (updateWorld N w)
-
-updateWorld' : State →  World × Fuel (suc n)
-            → World × Fuel n
-updateWorld' [] (w , e) = w , fuel _
-updateWorld' ((+ , s) ∷ S) (w , fuel (suc n))
-  = s ∷ (updateWorld S w) , fuel n 
-updateWorld' ((- , s) ∷ S) (w , fuel (suc n))
-  = remove s (updateWorld S w) , fuel n
+updateWorld' : State → World × Fuel (suc n) → World × Fuel n
+updateWorld' s (w , fuel (suc e)) = updateWorld s w , fuel e
 
 enriched-σ : Context → FuelAwareActionHandler
 enriched-σ Γ α = updateWorld' (effects (Γ α ))

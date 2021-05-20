@@ -1,35 +1,17 @@
 \begin{code}
-
-open import Relation.Binary
-open import Relation.Binary.PropositionalEquality
-open import Data.List hiding (any)
-open import Relation.Nullary hiding (¬_)
-open import Data.List.Membership.Propositional
-open import Data.List.Relation.Unary.Any
-open import Data.Empty
 open import Data.Product
 open import Data.Sum
-open import Agda.Builtin.Nat hiding (_+_ ; _-_)
 open import Data.List
-open import Function.Base
-open import Relation.Nullary.Decidable
 open import Data.Unit
-open Data.Product
-open import Agda.Builtin.FromNat
 open import Data.Maybe
+open import Agda.Builtin.FromNat
 
 open import TaxiDomain
-
-open import Plans.GrammarTypes taxiDomain hiding (¬_)
-open import Plans.PCPlansTyped taxiDomain
+open import Plans.GrammarTypes taxiDomain
+open import Plans.Plan taxiDomain
 open import Plans.ActionHandler taxiDomain
 
 module TaxiExample where
-
--- Action Context which defines the preconditions and effects of Actions.
-
-
-
 
 initialState : State
 initialState =

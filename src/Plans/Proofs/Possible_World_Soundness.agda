@@ -5,20 +5,22 @@ open import Data.Product
 open import Data.List.Membership.Propositional
 open import Data.List.Relation.Unary.Any
 open import Data.List hiding (any)
+open import Data.List.Properties
+open import Data.Empty
 
 open import Plans.Domain
 
 module Plans.Proofs.Possible_World_Soundness (domain : Domain) where
 
 open Domain domain
-open import Plans.GrammarTypes domain
+open import Plans.Semantics domain
 
 --------------------------------------------------------
 -- Code for the Soundness and Completeness proofs
 --
 -- We first prove some auxiliary lemmas:
 
-weakeningH : ∀ t₁ t₂ P Q N a -> (t₁ , a) ∈ (P ↓[ t₂ ] N) -> (t₁ , a) ∈ (Q ↓[ t₂ ] P ↓[ t₂ ] N)
+weakeningH : ∀ t₁ t₂ P Q N a → (t₁ , a) ∈ (P ↓[ t₂ ] N) → (t₁ , a) ∈ (Q ↓[ t₂ ] P ↓[ t₂ ] N)
 weakeningH t₁ t₂ P (Q ∧ Q₁) N a x = weakeningH t₁ t₂ Q Q₁ (P ↓[ t₂ ] N) a (weakeningH t₁ t₂ P Q N a x)
 weakeningH t₁ t₂ P (¬ x₁) N a x = there x
 weakeningH t₁ t₂ P (atom x₁) N a x = there x
@@ -26,7 +28,7 @@ weakeningH t₁ t₂ P (atom x₁) N a x = there x
 --
 -- ∈⟨⟩-weakeningH
 --
-∈⟨⟩-weakeningH : ∀ w t P Q N -> w ∈⟨ Q ↓[ t ] P ↓[ t ] N ⟩ -> (w ∈⟨ P ↓[ t ] N ⟩)
+∈⟨⟩-weakeningH : ∀ w t P Q N → w ∈⟨ Q ↓[ t ] P ↓[ t ] N ⟩ → (w ∈⟨ P ↓[ t ] N ⟩)
 ∈⟨⟩-weakeningH w t P Q N (pos , neg)
   = (λ a1 x → pos a1 (weakeningH + t P Q N a1 x))
   , (λ a1 x x2 → neg a1 (weakeningH - t P Q N a1 x) x2)
@@ -40,15 +42,7 @@ lemma-transport-r t (¬ A) M N = refl
 lemma-transport-r t (atom x) M N = refl
 
 
--- older stdlib
-{-
-open import Algebra
-++-assoc :  (x x₁ x₂ : List ( Polarity × R)) →  (x ++ x₁) ++ x₂ ≡ x ++ x₁ ++ x₂
-++-assoc = Monoid.assoc (monoid (Polarity × R))-}
-
 --newer stdlib
-open import Data.List.Properties
-
 
 lemma-transport-l : ∀ t P M N →
   (M ++ (P ↓[ t ] N)) ≡ ((M ++ (P ↓[ t ] [])) ++ N)
@@ -60,25 +54,23 @@ lemma-transport-l t (P ∧ P₁) M N
 lemma-transport-l t (¬ x) M N = sym (++-assoc M (((neg t) , x) ∷ []) N)
 lemma-transport-l t (atom x) M N = sym (++-assoc M ((t , x) ∷ []) N)
 
-open import Level
-
-∈-transport-l : ∀ a {t1} t P M N -> (t1 , a) ∈ ( M ++ (P ↓[ t ] N))
-  -> (t1 , a) ∈ ((M ++ (P ↓[ t ] [])) ++ N)
+∈-transport-l : ∀ a {t1} t P M N → (t1 , a) ∈ ( M ++ (P ↓[ t ] N))
+  → (t1 , a) ∈ ((M ++ (P ↓[ t ] [])) ++ N)
 ∈-transport-l a₁ {t₁} t P M N x
   = subst ((t₁ , a₁) ∈_) (lemma-transport-l t P M N) x
 
 
 
-∈-transport-r : ∀ a {t1} t P M N -> (t1 , a) ∈ ((M ++ (P ↓[ t ] [])) ++ N)
-  -> (t1 , a) ∈ ( M ++ (P ↓[ t ] N))
+∈-transport-r : ∀ a {t1} t P M N → (t1 , a) ∈ ((M ++ (P ↓[ t ] [])) ++ N)
+  → (t1 , a) ∈ ( M ++ (P ↓[ t ] N))
 ∈-transport-r a₁ t P M N x
   = subst (_ ∈_) ((sym (lemma-transport-l t P M N))) x
 
 --
 -- exchange for the underlying representation (was cAny)
 --
-∈-exchange : ∀ a {t} t1 t2 P Q N1 N2 -> (t , a) ∈ ( N1 ++ (P ↓[ t1 ] Q ↓[ t2 ] N2))
-  -> (t , a) ∈ (N1 ++ (Q ↓[ t2 ] P ↓[ t1 ] N2))
+∈-exchange : ∀ a {t} t1 t2 P Q N1 N2 → (t , a) ∈ ( N1 ++ (P ↓[ t1 ] Q ↓[ t2 ] N2))
+  → (t , a) ∈ (N1 ++ (Q ↓[ t2 ] P ↓[ t1 ] N2))
 ∈-exchange a₁ t1 t2 P (Q ∧ R) N1 N2 x
   = ∈-transport-r a₁ t2 R N1 (Q ↓[ t2 ] P ↓[ t1 ] N2)
       (∈-exchange a₁ t1 t2 P Q (N1 ++ (R ↓[ t2 ] [])) N2
@@ -124,8 +116,8 @@ open import Level
 --
 -- a wrapper around ∈-exchange
 --
-∈⟨⟩-exchange : ∀ w t1 t2 P Q N1 N2 -> w ∈⟨ N1 ++ (P ↓[ t1 ] Q ↓[ t2 ] N2) ⟩
-  -> w ∈⟨ N1 ++ (Q ↓[ t2 ] P ↓[ t1 ] N2) ⟩
+∈⟨⟩-exchange : ∀ w t1 t2 P Q N1 N2 → w ∈⟨ N1 ++ (P ↓[ t1 ] Q ↓[ t2 ] N2) ⟩
+  → w ∈⟨ N1 ++ (Q ↓[ t2 ] P ↓[ t1 ] N2) ⟩
 ∈⟨⟩-exchange w t1 t2 P (Q ∧ R) N1 N2 (fst , snd)
   = (λ { a₁ x₁ → fst a₁ (∈-exchange a₁ t2 t1 R P N1 (Q ↓[ t2 ] N2)
        (∈-transport-r a₁ t2 R N1 (P ↓[ t1 ] Q ↓[ t2 ] N2)
@@ -160,8 +152,8 @@ open import Level
 
 open import Data.Sum
 
-strengthening : ∀ t₁ t₂ P Q N a -> (t₁ , a) ∈ (Q ↓[ t₂ ] P ↓[ t₂ ] N)
-  -> ((t₁ , a) ∈ (Q ↓[ t₂ ] N)) ⊎  ((t₁ , a) ∈ (P ↓[ t₂ ] N))
+strengthening : ∀ t₁ t₂ P Q N a → (t₁ , a) ∈ (Q ↓[ t₂ ] P ↓[ t₂ ] N)
+  → ((t₁ , a) ∈ (Q ↓[ t₂ ] N)) ⊎  ((t₁ , a) ∈ (P ↓[ t₂ ] N))
 strengthening t₁ t₂ (P ∧ P₁) (Q₁ ∧ Q₂) N a x
   with strengthening t₁ t₂ Q₁ Q₂ (P₁ ↓[  t₂ ] P ↓[ t₂ ] N) a x
 strengthening t₁ t₂ (P ∧ P₁) (Q₁ ∧ Q₂) N a x | inj₁ x₁
@@ -195,25 +187,23 @@ strengthening t₁ t₂ (atom x₂) (¬ x₁) N a (there (there x)) = inj₁ (th
 strengthening t₁ t₂ P (atom x₁) N a (here px) = inj₁ (here px)
 strengthening t₁ t₂ P (atom x₁) N a (there x) = inj₂ x
 
-helperPos :  ∀ w t P Q N a → (w ∈⟨ P ↓[ t ] N ⟩) -> (w ∈⟨ Q ↓[ t ] N ⟩)
-           -> (+ , a) ∈ (Q ↓[ t ] P ↓[ t ] N)
-           -> a ∈ w
+helperPos :  ∀ w t P Q N a → (w ∈⟨ P ↓[ t ] N ⟩) → (w ∈⟨ Q ↓[ t ] N ⟩)
+           → (+ , a) ∈ (Q ↓[ t ] P ↓[ t ] N)
+           → a ∈ w
 helperPos w t P Q N a x x1 x2 with (strengthening + t P Q N) a x2
 helperPos w t P Q N a x x1 x2 | inj₁ y = proj₁ x1 a y
 helperPos w t P Q N a x x1  x2 | inj₂ y = proj₁ x a y
 
-open import Data.Empty
-
-helperNeg : ∀ w t P Q N a → (w ∈⟨ P ↓[ t ] N ⟩) -> (w ∈⟨ Q ↓[ t ] N ⟩)
-            -> (- , a) ∈ (Q ↓[ t ] P ↓[ t ] N)
-            -> a ∉ w
+helperNeg : ∀ w t P Q N a → (w ∈⟨ P ↓[ t ] N ⟩) → (w ∈⟨ Q ↓[ t ] N ⟩)
+            → (- , a) ∈ (Q ↓[ t ] P ↓[ t ] N)
+            → a ∉ w
 helperNeg w t P Q N a x x1 x2 x3 with (strengthening - t P Q N) a x2
 helperNeg w t P Q N a x x1 x2 x3 | inj₁ y = proj₂ x1 a y x3
 helperNeg w t P Q N a x x1 x2 x3 | inj₂ y = proj₂ x a y x3
 
 
-∈⟨⟩-strengthening : ∀ w t P Q N -> (w ∈⟨ P ↓[ t ] N ⟩) -> (w ∈⟨ Q ↓[ t ] N ⟩)
-  -> w ∈⟨ Q ↓[ t ] P ↓[ t ] N ⟩
+∈⟨⟩-strengthening : ∀ w t P Q N → (w ∈⟨ P ↓[ t ] N ⟩) → (w ∈⟨ Q ↓[ t ] N ⟩)
+  → w ∈⟨ Q ↓[ t ] P ↓[ t ] N ⟩
 ∈⟨⟩-strengthening w t P Q N p n
   = (λ { a x → helperPos w t P Q N a p n x })
     , (λ {a x x2 → helperNeg w t P Q N a p n x x2})
@@ -249,12 +239,12 @@ helperNeg w t P Q N a x x1 x2 x3 | inj₂ y = proj₂ x a y x3
 --------------------------------------------------------------------------------------------------------------------------------------
 -- New proofs
 
-helper : (a : Predicate) -> (N : State) -> (+ , a) ∈ N -> a ∈ (stateToWorld N)
+helper : (a : Predicate) → (N : State) → (+ , a) ∈ N → a ∈ (stateToWorld N)
 helper a ((+ , .a) ∷ N) (here refl) = here refl
 helper a ((+ , a1) ∷ N) (there x) = there (helper a N x)
 helper a ((- , a1) ∷ N) (there x) = helper a N x
 
-helper2 : (a : Predicate) -> (N : State) -> a ∈ (stateToWorld N) -> (+ , a) ∈ N
+helper2 : (a : Predicate) → (N : State) → a ∈ (stateToWorld N) → (+ , a) ∈ N
 helper2 a ((+ , .a) ∷ N) (here refl) = here refl
 helper2 a ((+ , snd) ∷ N) (there x) = there (helper2 a N x)
 helper2 a ((- , snd) ∷ N) x = there (helper2 a N x)
@@ -262,7 +252,7 @@ helper2 a ((- , snd) ∷ N) x = there (helper2 a N x)
 postulate
   implicit-consistency-assumption : (t : Polarity) (x : Predicate) → ∀ N → (t , x) ∈ N → (neg t , x) ∉ N
 
-stateToWorldConversionSound : (N : State) -> (stateToWorld N) ∈⟨ N ⟩
+stateToWorldConversionSound : (N : State) → (stateToWorld N) ∈⟨ N ⟩
 stateToWorldConversionSound [] = (λ x ()) , (λ x x₁ ())
 stateToWorldConversionSound ((+ , p) ∷ N) = (λ { a (here refl) → here refl ; a (there x) → there (helper a N x)})
           , λ { a x (here refl) → implicit-consistency-assumption + p ((+ , p) ∷ N) (here refl) x
@@ -274,8 +264,5 @@ stateToWorldConversionSound ((- , p) ∷ N) = (λ { a (there x) → helper a N x
 _↓₊ : Form → State
 P ↓₊ = P ↓[ + ] []
 
-open import Data.List.Relation.Unary.Any
-open import Agda.Builtin.Equality
-
-convertedStateEntailsPositiveForm : (P : Form) -> (stateToWorld (P ↓₊)) ⊨[ + ] P
+convertedStateEntailsPositiveForm : (P : Form) → (stateToWorld (P ↓₊)) ⊨[ + ] P
 convertedStateEntailsPositiveForm N = ↓-sound (stateToWorldConversionSound (N ↓[ + ] []))

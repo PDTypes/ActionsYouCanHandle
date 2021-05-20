@@ -4,9 +4,29 @@ open import Data.Product
 
 open import Plans.Domain
 
-module Plans.GrammarTypes  (domain : Domain) where
+module Plans.Semantics (domain : Domain) where
 
 open Domain domain
+
+--------------------------------------------------------
+-- Possible worlds 
+
+World : Set
+World = List Predicate
+
+-- Convert a State to a World
+stateToWorld : State  -> World
+stateToWorld [] = []
+stateToWorld ((+ , a) ∷ S) = a ∷ stateToWorld S
+stateToWorld ((- , a) ∷ S) = stateToWorld S
+
+-- Relation between World and State
+_∈⟨_⟩ : World → State → Set
+w ∈⟨ N ⟩ = (∀ a → (+ , a) ∈ N → a ∈ w) ×
+           (∀ a → (- , a) ∈ N → a ∉ w)
+
+--------------------------------------------------------
+-- Figure 6. Declarative and operational semantics
 
 data Form : Set where
   _∧_ : Form → Form → Form
@@ -14,18 +34,6 @@ data Form : Set where
   atom : Predicate → Form
 infixl 4 _∧_
 infixl 5 ¬_
-
---------------------------------------------------------
--- Figure 4. Possible worlds 
---
-
-World : Set
-World = List Predicate
-
-
---------------------------------------------------------
--- Figure 6. Declarative (possible world) semantics
--- 
 
 -- Entailment Relation
 infix 3 _⊨[_]_
@@ -41,23 +49,3 @@ _↓[_]_ : Form → Polarity → State → State
 P ∧ Q ↓[ t ] N = Q ↓[ t ] P ↓[ t ] N
 ¬ x ↓[ t ] N = (neg t , x) ∷ N
 atom x ↓[ t ] N = (t , x) ∷ N
-
----------------------------------------------------------------
--- Figure 7: Plans
---
-
-data Plan : Set where
-  _∷_ : Action → Plan → Plan
-  halt : Plan
-
---------------------------------------------------------
-
--- Relation between NPred and World
-_∈⟨_⟩ : World → State → Set
-w ∈⟨ N ⟩ = (∀ a → (+ , a) ∈ N → a ∈ w) × (∀ a → (- , a) ∈ N → a ∉ w)
-
--- Convert a State to a World
-stateToWorld : State  -> World
-stateToWorld [] = []
-stateToWorld ((+ , a) ∷ S) = a ∷ stateToWorld S
-stateToWorld ((- , a) ∷ S) = stateToWorld S
