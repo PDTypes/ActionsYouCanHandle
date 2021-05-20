@@ -18,6 +18,7 @@ open Data.Product
 open import Agda.Builtin.FromNat using (Number)
 open import Data.Maybe
 open import Data.Nat
+open import Data.Fin.Patterns
 import Data.Nat.Literals as NatLiterals
 import Data.Fin.Literals as FinLiterals
 
@@ -71,9 +72,16 @@ Derivation = from-just (solver Γ planₜ initialState goalState)
 
 -- percentage of variance allowed for lowerbound
 -- 100/4= 25%
-open import Fairness.GenderAwareActionHandler getGender 4 
 
-tripsTaken : Gender -> ℕ
+-- Assign all taxis to a gender
+driverGender : Object taxi → Gender
+driverGender (taxi 0F) = male
+driverGender (taxi 1F) = female
+driverGender (taxi 2F) = male
+
+open import Fairness.GenderAwareActionHandler driverGender 4 
+
+tripsTaken : Gender → ℕ
 tripsTaken x = 0
 
 finalState : World
@@ -84,7 +92,7 @@ finalState = from-inj₁ (execute' planₜ (enriched-σ Γ) tripsTaken (updateWo
 --30
 -- 66% assigned
 -- 50%
-tripsTaken2 : Gender -> ℕ
+tripsTaken2 : Gender → ℕ
 tripsTaken2 male = 30
 tripsTaken2 female = 11
 tripsTaken2 other = 0
@@ -94,7 +102,7 @@ finalState2 = from-inj₁ (execute' planₜ (enriched-σ Γ) tripsTaken2 (update
 
 --------------------------------------------------------------------------------------------
 
-tripsTaken3 : Gender -> ℕ
+tripsTaken3 : Gender → ℕ
 tripsTaken3 male = 30
 tripsTaken3 female = 9
 tripsTaken3 other = 0

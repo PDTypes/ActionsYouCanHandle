@@ -22,14 +22,3 @@ decGender female other = no (λ ())
 decGender other male = no (λ ())
 decGender other female = no (λ ())
 decGender other other = yes refl
-
--- Assign all taxis to a gender
-getGender : Object taxi -> Gender
-getGender (taxi 0F) = male
-getGender (taxi 1F) = female
-getGender (taxi 2F) = male
-
-
--- return the number of taxis of a specific gender 
-noGender : Gender -> ℕ
-noGender g = length (filter (λ t → decGender g (getGender t)) allTaxis)

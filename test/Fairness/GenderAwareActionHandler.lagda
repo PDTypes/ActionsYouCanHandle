@@ -13,7 +13,7 @@ open import Data.Nat
 open import Data.Nat.Show
 open import Relation.Nullary.Decidable
 open import Data.Unit
-open import Data.String hiding (show; _<_ ; _<?_; _≟_ )
+open import Data.String hiding (show; _<_ ; _<?_; _≟_; length)
 open import Relation.Nullary
 open import Data.Maybe
 open import Data.Nat.DivMod
@@ -36,6 +36,10 @@ variable
   n m : ℕ
 
 open IsDecEquivalence isDecidable renaming (_≟_ to _≟ᵣ_)
+
+-- return the number of taxis of a specific gender 
+noGender : Gender -> ℕ
+noGender g = length (filter (λ t → decGender g (getGender t)) allTaxis)
 
 -- Instead of float we will us nat to two decimal places by multiplying by 100
 
