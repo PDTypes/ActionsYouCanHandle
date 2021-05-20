@@ -92,7 +92,7 @@ TripAgnostic? (drive x x₁ x₂) = yes tt
 UnderMinimumTripThreshold : TripCount → Set
 UnderMinimumTripThreshold tripCount = totalTripsTaken tripCount < totalDrivers * 10
 
-UnderMinimumTripThreshold? : (tripCount : TripCount) → Dec (UnderMinimumTripThreshold tripCount)
+UnderMinimumTripThreshold? : U.Decidable UnderMinimumTripThreshold
 UnderMinimumTripThreshold? tripCount = totalTripsTaken tripCount <? totalDrivers * 10
 
 calculateGenderAssignment : Gender → TripCount → ℕ 
@@ -114,13 +114,9 @@ IsFairForAll f = ∀ (g : Gender) → IsFair g f
 
 IsFairForAll? : U.Decidable IsFairForAll
 IsFairForAll? f with IsFair? male f | IsFair? female f | IsFair? other f
-... | no ¬p | no ¬p₁ | no ¬p₂ = no (λ {x → ¬p (x male)})
-... | no ¬p | no ¬p₁ | yes p = no (λ x → ¬p (x male))
-... | no ¬p | yes p | no ¬p₁ = no (λ x → ¬p (x male))
-... | no ¬p | yes p | yes p₁ = no (λ x → ¬p (x male))
-... | yes p | no ¬p | no ¬p₁ = no (λ x → ¬p (x female))
-... | yes p | no ¬p | yes p₁ = no (λ x → ¬p (x female))
-... | yes p | yes p₁ | no ¬p = no (λ x → ¬p (x other))
+... | no ¬p | _      | _      = no (λ x → ¬p (x male))
+... | _     | no ¬p  | _      = no (λ x → ¬p (x female))
+... | _     | _      | no ¬p  = no (λ x → ¬p (x other))
 ... | yes p | yes p₁ | yes p₂ = yes (λ { male → p ; female → p₁ ; other → p₂})
 
 -- Overall condition
