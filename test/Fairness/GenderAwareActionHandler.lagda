@@ -89,7 +89,7 @@ TripAgnostic? (drive x x₁ x₂) = yes tt
 -- Condition 2 : Number of trips is too small to make a judgement about fairness
 
 UnderMinimumTripThreshold : TripCount → Set
-UnderMinimumTripThreshold tripsTaken = totalTripsTaken tripsTaken < (totalDrivers * 10)
+UnderMinimumTripThreshold tripCount = totalTripsTaken tripCount < (totalDrivers * 10)
 
 UnderMinimumTripThreshold? : (f : TripCount) → Dec (UnderMinimumTripThreshold f)
 UnderMinimumTripThreshold? f = totalTripsTaken f <? (totalDrivers * 10)
@@ -125,19 +125,19 @@ IsFairForAll? f with IsFair? male f | IsFair? female f | IsFair? other f
 -- Overall condition
 
 data ActionPreservesFairness
-  (α : Action) (tripsTaken : TripCount) : Set where
-  underThreshold : UnderMinimumTripThreshold tripsTaken
-    → ActionPreservesFairness α tripsTaken
-  fairForAll : IsFairForAll tripsTaken
-    → ActionPreservesFairness α tripsTaken
+  (α : Action) (tripCount : TripCount) : Set where
+  underThreshold : UnderMinimumTripThreshold tripCount
+    → ActionPreservesFairness α tripCount
+  fairForAll : IsFairForAll tripCount
+    → ActionPreservesFairness α tripCount
   agnostic : TripAgnostic α
-    → ActionPreservesFairness α tripsTaken
+    → ActionPreservesFairness α tripCount
 
-ActionPreservesFairness? : ∀ action tripsTaken → Dec (ActionPreservesFairness action tripsTaken)
-ActionPreservesFairness? action tripsTaken with
+ActionPreservesFairness? : ∀ action tripCount → Dec (ActionPreservesFairness action tripCount)
+ActionPreservesFairness? action tripCount with
   TripAgnostic? action
-  | UnderMinimumTripThreshold? tripsTaken
-  | IsFairForAll? tripsTaken
+  | UnderMinimumTripThreshold? tripCount
+  | IsFairForAll? tripCount
 ... | yes ag | _      | _        = yes (agnostic ag)
 ... | _      | yes ut | _        = yes (underThreshold ut)
 ... | _      | _      | yes fair = yes (fairForAll fair)
@@ -181,8 +181,8 @@ errorMessage (notProportional α f notFair) with IsFair? male f | IsFair? female
 GenderAwareActionHandler : Set
 GenderAwareActionHandler =
   (α : Action)
-  → {tripsTaken : Gender → ℕ} 
-  → {fair : ActionPreservesFairness α tripsTaken}
+  → {tripCount : Gender → ℕ} 
+  → {fair : ActionPreservesFairness α tripCount}
   → World → World
 
 enriched-σ : Context → GenderAwareActionHandler
@@ -190,12 +190,12 @@ enriched-σ Γ α = updateWorld (effects (Γ α ))
 
 execute' : Plan →
            GenderAwareActionHandler →
-           (tripsTaken : (Gender → ℕ)) →
+           TripCount →
            World →
            World ⊎ GenderBiasError
-execute' halt    σ tripsTaken w = inj₁ w  
-execute' (a ∷ f) σ tripsTaken w with updateTripCount a tripsTaken
+execute' halt    σ tripCount w = inj₁ w  
+execute' (a ∷ f) σ tripCount w with updateTripCount a tripCount
 ... | updatedTrips with ActionPreservesFairness? a updatedTrips
-...   | yes fair = execute' f σ (updateTripCount a tripsTaken) (σ a {fair = fair} w)
+...   | yes fair = execute' f σ updatedTrips (σ a {fair = fair} w)
 ...   | no ¬fair = inj₂ (notProportional a updatedTrips ¬fair)
 \end{code}
