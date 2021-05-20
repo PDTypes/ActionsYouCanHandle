@@ -4,6 +4,7 @@ open import Relation.Nullary
 open import Data.Nat
 open import Data.List
 open import Data.Fin.Patterns
+open import Data.String
 
 open import TaxiDomain
 
@@ -22,3 +23,8 @@ decGender female other = no (λ ())
 decGender other male = no (λ ())
 decGender other female = no (λ ())
 decGender other other = yes refl
+
+showGender : Gender → String
+showGender male = "male"
+showGender female = "female"
+showGender other = "other"

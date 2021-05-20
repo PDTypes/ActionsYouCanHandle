@@ -17,12 +17,15 @@ open import Data.String hiding (show; _<_ ; _<?_; _≟_; length)
 open import Relation.Nullary
 open import Data.Maybe
 open import Data.Nat.DivMod
+import Relation.Unary as U
+open import Relation.Nullary.Negation using (contradiction)
+open import Function using (flip)
 
 open import TaxiDomain
 open import Fairness.Gender
 
 open import Plans.Plan taxiDomain
-open import Plans.Semantics taxiDomain hiding (¬_)
+open import Plans.Semantics taxiDomain hiding (¬_; flip)
 open import Plans.ActionHandler taxiDomain
 
 open ActionDescription
@@ -38,7 +41,7 @@ variable
 open IsDecEquivalence isDecidable renaming (_≟_ to _≟ᵣ_)
 
 -- return the number of taxis of a specific gender 
-noGender : Gender -> ℕ
+noGender : Gender → ℕ
 noGender g = length (filter (λ t → decGender g (getGender t)) allTaxis)
 
 -- Instead of float we will us nat to two decimal places by multiplying by 100
@@ -57,52 +60,59 @@ n /₀ (suc m) = n / (suc m)
 percentage : Gender → ℕ
 percentage g = (noGender g * 100) /₀ totalDrivers 
 
--- Cannot have over a 20% difference in taxi allocations from the proportional representation
--- could move this so it is passed into the module
-tripsTakenOrig : Gender → ℕ
-tripsTakenOrig x = 5
+TripCount : Set
+TripCount = Gender → ℕ
 
 --Total trips taken
-totalTripsTaken : (Gender → ℕ) → ℕ
+totalTripsTaken : TripCount → ℕ
 totalTripsTaken f = _+_ (_+_ (f male) (f female)) (f other)
 
-incTripsG : Gender → (Gender → ℕ) → (Gender → ℕ)
-incTripsG g f g1 with decGender g g1
-... | no  _ = f g1
+updateTripCount : Action → TripCount → TripCount
+updateTripCount (drive _ _ _)  f = f
+updateTripCount (drivePassenger t1 _ _ _) f g with decGender (getGender t1) g
+... | no  _ = f g
 ... | yes _ = suc (f g)
-
--- True if the action does not affect the number of trips taken
-TripAgnostic : Action → Set
-TripAgnostic (drivePassenger t p1 l1 l2) = ⊥
-TripAgnostic (drive t l1 l2) = ⊤
-
 
 -------------------------------------------------------------------------------------------------------
 -- Conditions
 
-UnderMinimumTripThreshold : (f : (Gender → ℕ)) → Set
+-- Condition 1 : Driver does not get paid for trip
+
+TripAgnostic : Action → Set
+TripAgnostic (drivePassenger t p1 l1 l2) = ⊥
+TripAgnostic (drive t l1 l2) = ⊤
+
+TripAgnostic? : U.Decidable TripAgnostic
+TripAgnostic? (drivePassenger x x₁ x₂ x₃) = no λ()
+TripAgnostic? (drive x x₁ x₂) = yes tt
+
+-- Condition 2 : Number of trips is too small to make a judgement about fairness
+
+UnderMinimumTripThreshold : TripCount → Set
 UnderMinimumTripThreshold tripsTaken = totalTripsTaken tripsTaken < (totalDrivers * 10)
 
-underMinimumTripThreshold? : (f : (Gender → ℕ)) → Dec (UnderMinimumTripThreshold f)
-underMinimumTripThreshold? f = totalTripsTaken f <? (totalDrivers * 10)
+UnderMinimumTripThreshold? : (f : TripCount) → Dec (UnderMinimumTripThreshold f)
+UnderMinimumTripThreshold? f = totalTripsTaken f <? (totalDrivers * 10)
 
-calculateGenderAssignment : Gender → (Gender → ℕ) → ℕ 
+calculateGenderAssignment : Gender → TripCount → ℕ 
 calculateGenderAssignment g f = (f g * 100) /₀ (totalTripsTaken f)
 
 calculateLowerbound : Gender → ℕ  
 calculateLowerbound g = percentage g ∸ (percentage g /₀ margin)
 
-IsFair : (g : Gender) → (f : (Gender → ℕ)) → Set
+-- Condition 3 : The assignment of trips is fair
+
+IsFair : Gender → TripCount → Set
 IsFair g f = calculateGenderAssignment g f  ≥ calculateLowerbound g
 
-isFair? : Decidable IsFair
-isFair? g f = calculateGenderAssignment g f ≥? calculateLowerbound g
+IsFair? : Decidable IsFair
+IsFair? g f = calculateGenderAssignment g f ≥? calculateLowerbound g
 
-IsFairForAll : (f : (Gender → ℕ)) → Set
+IsFairForAll : TripCount → Set
 IsFairForAll f = ∀ (g : Gender) → IsFair g f
 
-isFairForAll? : (f : (Gender → ℕ)) → Dec (IsFairForAll f)
-isFairForAll? f with isFair? male f | isFair? female f | isFair? other f
+IsFairForAll? : (f : TripCount) → Dec (IsFairForAll f)
+IsFairForAll? f with IsFair? male f | IsFair? female f | IsFair? other f
 ... | no ¬p | no ¬p₁ | no ¬p₂ = no (λ {x → ¬p (x male)})
 ... | no ¬p | no ¬p₁ | yes p = no (λ x → ¬p (x male))
 ... | no ¬p | yes p | no ¬p₁ = no (λ x → ¬p (x male))
@@ -112,76 +122,80 @@ isFairForAll? f with isFair? male f | isFair? female f | isFair? other f
 ... | yes p | yes p₁ | no ¬p = no (λ x → ¬p (x other))
 ... | yes p | yes p₁ | yes p₂ = yes (λ { male → p ; female → p₁ ; other → p₂})
 
+-- Overall condition
+
+data ActionPreservesFairness
+  (α : Action) (tripsTaken : TripCount) : Set where
+  underThreshold : UnderMinimumTripThreshold tripsTaken
+    → ActionPreservesFairness α tripsTaken
+  fairForAll : IsFairForAll tripsTaken
+    → ActionPreservesFairness α tripsTaken
+  agnostic : TripAgnostic α
+    → ActionPreservesFairness α tripsTaken
+
+ActionPreservesFairness? : ∀ action tripsTaken → Dec (ActionPreservesFairness action tripsTaken)
+ActionPreservesFairness? action tripsTaken with
+  TripAgnostic? action
+  | UnderMinimumTripThreshold? tripsTaken
+  | IsFairForAll? tripsTaken
+... | yes ag | _      | _        = yes (agnostic ag)
+... | _      | yes ut | _        = yes (underThreshold ut)
+... | _      | _      | yes fair = yes (fairForAll fair)
+... | no ¬ag | no ¬ut | no ¬fair = no λ
+  { (agnostic ag)       → ¬ag ag
+  ; (underThreshold ut) → ¬ut ut
+  ; (fairForAll fair)   → ¬fair fair
+  }
+
 ------------------------------------------------------------------------------------------------
--- Error Handling
+-- Error handling
 
-proofToString : n ≱ m → String
-proofToString {n} {m} x = "the assignment " ++ show n ++ " is not greater than the lower bound " ++ show m
+data GenderBiasError : Set where
+  notProportional : (a : Action) (f : TripCount) → ¬ (ActionPreservesFairness a f) → GenderBiasError
 
-data Error : Set where
-  notProportional : Action → (f : Gender → ℕ) → ¬ (IsFairForAll f) → Error
+proofToString : Gender → n ≱ m → String
+proofToString {n} {m} gender _ =
+  "The gender " ++ showGender gender ++ " is not proportional:"
+  ++ " the assignment " ++ show n ++ " is not greater than the lower bound " ++ show m ++ ".\n"
 
-errorMessage : Error → String × Action
-errorMessage (notProportional α f x₁) with isFair? male f | isFair? female f | isFair? other f
-... | no ¬p | no ¬p₁ | no ¬p₂ = "The gender male is not proportional: " ++ proofToString ¬p ++  ". The gender female is not proportional: " ++ proofToString ¬p₁  ++ ". The gender other is not proportional: " ++ proofToString ¬p₁ , α
-... | no ¬p | no ¬p₁ | yes p = "The gender male is not proportional: " ++ proofToString ¬p ++  ". The gender female is not proportional: " ++ proofToString ¬p₁  , α
-... | no ¬p | yes p | no ¬p₁ = "The gender male is not proportional: " ++ proofToString ¬p ++  ". The gender other is not proportional: " ++ proofToString ¬p₁  , α
-... | no ¬p | yes p | yes p₁ = "The gender male is not proportional: " ++ proofToString ¬p  , α
-... | yes p | no ¬p | no ¬p₁ = "The gender female is not proportional: " ++ proofToString ¬p ++ ". The gender other is not proportional: " ++ proofToString ¬p₁  , α
-... | yes p | no ¬p | yes p₁ = "The gender female is not proportional: " ++ proofToString ¬p  , α
-... | yes p | yes p₁ | no ¬p = "The gender other is not proportional: " ++ proofToString ¬p , α
-... | yes p | yes p₁ | yes p₂ = ⊥-elim (x₁ (λ { male → p ; female → p₁ ; other → p₂}))
+errorMessage : GenderBiasError → Action × String
+errorMessage (notProportional (drive _ _ _) f notFair) = contradiction (agnostic _) notFair
+errorMessage (notProportional α f notFair) with IsFair? male f | IsFair? female f | IsFair? other f
+... | no ¬p | no ¬p₁ | no ¬p₂ = α , proofToString male ¬p ++ proofToString female ¬p₁  ++ proofToString other ¬p₁
+... | no ¬p | no ¬p₁ | yes p  = α , proofToString male ¬p ++ proofToString female ¬p₁
+... | no ¬p | yes p  | no ¬p₁ = α , proofToString male ¬p ++ proofToString other ¬p₁
+... | no ¬p | yes p  | yes p₁ = α , proofToString male ¬p
+... | yes p | no ¬p  | no ¬p₁ = α , proofToString female ¬p ++ proofToString other ¬p₁
+... | yes p | no ¬p  | yes p₁ = α , proofToString female ¬p
+... | yes p | yes p₁ | no ¬p  = α , proofToString male ¬p
+... | yes p | yes p₁ | yes p₂ = flip contradiction notFair (fairForAll (λ
+  { male → p
+  ; female → p₁
+  ; other → p₂
+  }))
 
 ---------------------------------------------------------------------------------------------------------------
 -- Action Handler
-
-
-data ActionPreservesFairness
-  (α : Action)(g : Gender)(tripsTaken : Gender → ℕ) : Set where
-  underThreshold : UnderMinimumTripThreshold tripsTaken
-    → ActionPreservesFairness α g tripsTaken
-  fairForAll : IsFairForAll (incTripsG g tripsTaken)
-    → ActionPreservesFairness α g tripsTaken
-  agnostic : TripAgnostic α
-    → ActionPreservesFairness α g tripsTaken
 
 --need to fix this to include minimum trips 
 GenderAwareActionHandler : Set
 GenderAwareActionHandler =
   (α : Action)
-  → {g : Gender}
-  → {tripsTaken : (Gender → ℕ)} 
-  → {ActionPreservesFairness α g tripsTaken}
+  → {tripsTaken : Gender → ℕ} 
+  → {fair : ActionPreservesFairness α tripsTaken}
   → World → World
 
 enriched-σ : Context → GenderAwareActionHandler
 enriched-σ Γ α = updateWorld (effects (Γ α ))
 
-execute' : Plan → GenderAwareActionHandler
-            → (tripsTaken : (Gender → ℕ))
-            → World
-            → World ⊎ Error
-execute' (drivePassenger txi p1 l1 l2 ∷ f) σ tripsTaken w with underMinimumTripThreshold? tripsTaken
-... | yes p = execute' f σ (incTripsG (getGender txi) tripsTaken) 
-                                                             (σ (drivePassenger txi p1 l1 l2)
-                                                                 {getGender txi}
-                                                                 {tripsTaken}
-                                                                 {underThreshold p}
-                                                                 w)
-... | no ¬p with isFairForAll? (incTripsG (getGender txi) tripsTaken) 
-... | no ¬p₁ = inj₂ (notProportional (drivePassenger txi p1 l1 l2) ((incTripsG (getGender txi) tripsTaken)) ¬p₁) --inj₂ (notProportional _ ¬p)
-... | yes p =  execute' f σ (incTripsG (getGender txi) tripsTaken) 
-                                                             (σ (drivePassenger txi p1 l1 l2)
-                                                                 {getGender txi}
-                                                                 {tripsTaken}
-                                                                 {fairForAll p}
-                                                                 w)
-execute' (drive txi l1 l2 ∷ f) σ tripsTaken w = execute' f σ tripsTaken 
-                                                             (σ (drive txi l1 l2)
-                                                                 {getGender txi}
-                                                                 {tripsTaken} 
-                                                                {agnostic tt}
-                                                                 w)
-execute' halt σ tripsTaken w = inj₁ w  
-
+execute' : Plan →
+           GenderAwareActionHandler →
+           (tripsTaken : (Gender → ℕ)) →
+           World →
+           World ⊎ GenderBiasError
+execute' halt    σ tripsTaken w = inj₁ w  
+execute' (a ∷ f) σ tripsTaken w with updateTripCount a tripsTaken
+... | updatedTrips with ActionPreservesFairness? a updatedTrips
+...   | yes fair = execute' f σ (updateTripCount a tripsTaken) (σ a {fair = fair} w)
+...   | no ¬fair = inj₂ (notProportional a updatedTrips ¬fair)
 \end{code}

@@ -38,18 +38,18 @@ FuelAwareActionHandler = ∀ {n} → Action
                       → World × Fuel n
 
 data OutOfFuelError : Set where
-  error : Action -> World -> OutOfFuelError
+  error : Action → World → OutOfFuelError
 
 -- implementing an actual handler of this type future work
-executeWithFuel : Plan → FuelAwareActionHandler
-             → World × Fuel n
-             → World ⊎ OutOfFuelError
-executeWithFuel (α ∷ f) σ (w , (fuel zero)) = inj₂ (error α w)
-executeWithFuel (α ∷ f) σ (w , (fuel (suc n))) =
-            executeWithFuel f σ (σ α (w , (fuel (suc n))))
-executeWithFuel halt σ (w , e) = inj₁ w
+executeWithFuel : Plan →
+                  FuelAwareActionHandler →
+                  World × Fuel n →
+                  World ⊎ OutOfFuelError
+executeWithFuel halt    σ (w , e)              = inj₁ w
+executeWithFuel (α ∷ f) σ (w , fuel 0)         = inj₂ (error α w)
+executeWithFuel (α ∷ f) σ s@(w , fuel (suc _)) = executeWithFuel f σ (σ α s)
 
-getWorld : World × Fuel n -> World
+getWorld : World × Fuel n → World
 getWorld (w , e) = w
 
 -- World constructor from state
