@@ -31,34 +31,35 @@ open import Plans.ActionHandler taxiDomain
 open ActionDescription
 
 module Fairness.GenderAwareActionHandler
-  (getGender : Object taxi → Gender)
+  (driverGender : Object taxi → Gender)
   (margin : ℕ)
   where
 
 variable
   n m : ℕ
 
-open IsDecEquivalence isDecidable renaming (_≟_ to _≟ᵣ_)
+-------------------------------------------------------------------------------------------------------
+-- Percentages
 
--- return the number of taxis of a specific gender 
+-- Return the number of taxis of a specific gender 
 noGender : Gender → ℕ
-noGender g = length (filter (λ t → decGender g (getGender t)) allTaxis)
-
--- Instead of float we will us nat to two decimal places by multiplying by 100
+noGender g = length (filter (λ t → decGender g (driverGender t)) allTaxis)
 
 totalDrivers : ℕ
 totalDrivers = _+_ (noGender male) (_+_ (noGender female) (noGender other))
 
 -- Division with 0 / 0 = 0
-
 infixl 7 _/₀_
 _/₀_ : ℕ → ℕ → ℕ
 n /₀ zero    = 0
 n /₀ (suc m) = n / (suc m)
 
---percentage of each gender
+-- Percentage of each gender
 percentage : Gender → ℕ
 percentage g = (noGender g * 100) /₀ totalDrivers 
+
+-------------------------------------------------------------------------------------------------------
+-- Trip counts
 
 TripCount : Set
 TripCount = Gender → ℕ
@@ -69,7 +70,7 @@ totalTripsTaken f = _+_ (_+_ (f male) (f female)) (f other)
 
 updateTripCount : Action → TripCount → TripCount
 updateTripCount (drive _ _ _)  f = f
-updateTripCount (drivePassenger t1 _ _ _) f g with decGender (getGender t1) g
+updateTripCount (drivePassenger t1 _ _ _) f g with decGender (driverGender t1) g
 ... | no  _ = f g
 ... | yes _ = suc (f g)
 
@@ -89,13 +90,13 @@ TripAgnostic? (drive x x₁ x₂) = yes tt
 -- Condition 2 : Number of trips is too small to make a judgement about fairness
 
 UnderMinimumTripThreshold : TripCount → Set
-UnderMinimumTripThreshold tripCount = totalTripsTaken tripCount < (totalDrivers * 10)
+UnderMinimumTripThreshold tripCount = totalTripsTaken tripCount < totalDrivers * 10
 
-UnderMinimumTripThreshold? : (f : TripCount) → Dec (UnderMinimumTripThreshold f)
-UnderMinimumTripThreshold? f = totalTripsTaken f <? (totalDrivers * 10)
+UnderMinimumTripThreshold? : (tripCount : TripCount) → Dec (UnderMinimumTripThreshold tripCount)
+UnderMinimumTripThreshold? tripCount = totalTripsTaken tripCount <? totalDrivers * 10
 
 calculateGenderAssignment : Gender → TripCount → ℕ 
-calculateGenderAssignment g f = (f g * 100) /₀ (totalTripsTaken f)
+calculateGenderAssignment g tripCount = (tripCount g * 100) /₀ totalTripsTaken tripCount
 
 calculateLowerbound : Gender → ℕ  
 calculateLowerbound g = percentage g ∸ (percentage g /₀ margin)
@@ -111,7 +112,7 @@ IsFair? g f = calculateGenderAssignment g f ≥? calculateLowerbound g
 IsFairForAll : TripCount → Set
 IsFairForAll f = ∀ (g : Gender) → IsFair g f
 
-IsFairForAll? : (f : TripCount) → Dec (IsFairForAll f)
+IsFairForAll? : U.Decidable IsFairForAll
 IsFairForAll? f with IsFair? male f | IsFair? female f | IsFair? other f
 ... | no ¬p | no ¬p₁ | no ¬p₂ = no (λ {x → ¬p (x male)})
 ... | no ¬p | no ¬p₁ | yes p = no (λ x → ¬p (x male))
@@ -177,7 +178,6 @@ errorMessage (notProportional α f notFair) with IsFair? male f | IsFair? female
 ---------------------------------------------------------------------------------------------------------------
 -- Action Handler
 
---need to fix this to include minimum trips 
 GenderAwareActionHandler : Set
 GenderAwareActionHandler =
   (α : Action)
