@@ -150,6 +150,9 @@ GenderAwareActionHandler =
   → {ActionPreservesFairness α g tripsTaken}
   → World → World
 
+enriched-σ : Context → GenderAwareActionHandler
+enriched-σ Γ α = updateWorld (effects (Γ α ))
+
 execute' : Plan → GenderAwareActionHandler
             → (tripsTaken : (Gender → ℕ))
             → World

@@ -77,7 +77,7 @@ tripsTaken : Gender -> ℕ
 tripsTaken x = 0
 
 finalState : World
-finalState = from-inj₁ (execute' planₜ (canonical-σ Γ) tripsTaken (updateWorld initialState []))
+finalState = from-inj₁ (execute' planₜ (enriched-σ Γ) tripsTaken (updateWorld initialState []))
 
 -------------------------------------------------------------------------------
 
@@ -90,7 +90,7 @@ tripsTaken2 female = 11
 tripsTaken2 other = 0
 
 finalState2 : World
-finalState2 = from-inj₁ (execute' planₜ (canonical-σ Γ) tripsTaken2 (updateWorld initialState []))
+finalState2 = from-inj₁ (execute' planₜ (enriched-σ Γ) tripsTaken2 (updateWorld initialState []))
 
 --------------------------------------------------------------------------------------------
 
@@ -100,7 +100,7 @@ tripsTaken3 female = 9
 tripsTaken3 other = 0
 
 finalStateError : Error
-finalStateError = from-inj₂ (execute' planₜ (canonical-σ Γ) tripsTaken3 (updateWorld initialState []))
+finalStateError = from-inj₂ (execute' planₜ (enriched-σ Γ) tripsTaken3 (updateWorld initialState []))
 
 open import Data.String
 
