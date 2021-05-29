@@ -1,5 +1,3 @@
-\begin{code}
-
 open import Relation.Binary
 open import Relation.Binary.PropositionalEquality
 open import Data.List hiding (any ; _++_)
@@ -59,4 +57,3 @@ updateWorld' s (w , fuel (suc e)) = updateWorld s w , fuel e
 enriched-σ : Context → FuelAwareActionHandler
 enriched-σ Γ α = updateWorld' (effects (Γ α ))
 
-\end{code}

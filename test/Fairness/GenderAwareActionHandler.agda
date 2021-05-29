@@ -1,5 +1,3 @@
-\begin{code}
-
 open import Relation.Binary
 open import Relation.Binary.PropositionalEquality
 open import Data.List hiding (any ; _++_)
@@ -43,7 +41,8 @@ variable
 
 -- Return the number of taxis of a specific gender 
 noGender : Gender → ℕ
-noGender g = length (filter (λ t → decGender g (driverGender t)) allTaxis)
+noGender g =
+  length (filter (λ t → decGender g (driverGender t)) allTaxis)
 
 totalDrivers : ℕ
 totalDrivers = _+_ (noGender male) (_+_ (noGender female) (noGender other))
@@ -90,13 +89,15 @@ TripAgnostic? (drive x x₁ x₂) = yes tt
 -- Condition 2 : Number of trips is too small to make a judgement about fairness
 
 UnderMinimumTripThreshold : TripCount → Set
-UnderMinimumTripThreshold tripCount = totalTripsTaken tripCount < totalDrivers * 10
+UnderMinimumTripThreshold tripCount =
+  totalTripsTaken tripCount < totalDrivers * 10
 
 UnderMinimumTripThreshold? : U.Decidable UnderMinimumTripThreshold
 UnderMinimumTripThreshold? tripCount = totalTripsTaken tripCount <? totalDrivers * 10
 
 calculateGenderAssignment : Gender → TripCount → ℕ 
-calculateGenderAssignment g tripCount = (tripCount g * 100) /₀ totalTripsTaken tripCount
+calculateGenderAssignment g tripCount =
+  (tripCount g * 100) /₀ totalTripsTaken tripCount
 
 calculateLowerbound : Gender → ℕ  
 calculateLowerbound g = percentage g ∸ (percentage g /₀ margin)
@@ -104,10 +105,12 @@ calculateLowerbound g = percentage g ∸ (percentage g /₀ margin)
 -- Condition 3 : The assignment of trips is fair
 
 IsFair : Gender → TripCount → Set
-IsFair g f = calculateGenderAssignment g f  ≥ calculateLowerbound g
+IsFair g f =
+  calculateGenderAssignment g f  ≥ calculateLowerbound g
 
 IsFair? : Decidable IsFair
-IsFair? g f = calculateGenderAssignment g f ≥? calculateLowerbound g
+IsFair? g f =
+  calculateGenderAssignment g f ≥? calculateLowerbound g
 
 IsFairForAll : TripCount → Set
 IsFairForAll f = ∀ (g : Gender) → IsFair g f
@@ -148,7 +151,8 @@ ActionPreservesFairness? action tripCount with
 -- Error handling
 
 data GenderBiasError : Set where
-  notProportional : (a : Action) (f : TripCount) → ¬ (ActionPreservesFairness a f) → GenderBiasError
+  notProportional : (a : Action) (f : TripCount)
+    → ¬ (ActionPreservesFairness a f) → GenderBiasError
 
 proofToString : Gender → n ≱ m → String
 proofToString {n} {m} gender _ =
@@ -194,4 +198,4 @@ execute' (a ∷ f) σ tripCount w with updateTripCount a tripCount
 ... | updatedTrips with ActionPreservesFairness? a updatedTrips
 ...   | yes fair = execute' f σ updatedTrips (σ a {fair = fair} w)
 ...   | no ¬fair = inj₂ (notProportional a updatedTrips ¬fair)
-\end{code}
+

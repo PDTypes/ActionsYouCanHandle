@@ -1,4 +1,3 @@
-\begin{code}
 open import Relation.Binary.PropositionalEquality
 open import Relation.Binary
 open import Data.List
@@ -145,4 +144,3 @@ taxiDomain = record
 open Domain taxiDomain public
   hiding (Action; Predicate; Type; Γ)
 
-\end{code}

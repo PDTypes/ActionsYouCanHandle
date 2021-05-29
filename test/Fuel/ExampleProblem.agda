@@ -1,5 +1,3 @@
-\begin{code}
-
 open import Data.Product
 open import Data.Sum
 open import Data.Fin

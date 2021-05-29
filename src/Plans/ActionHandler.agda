@@ -31,7 +31,10 @@ open ActionDescription
 
 WfHandler : Context → ActionHandler → Set
 WfHandler Γ σ =
-  ∀{α P} →  P <: preconditions (Γ α) → ∀ {w} → w ∈⟨ P ⟩ → σ α w ∈⟨ P ⊔N effects (Γ α) ⟩
+  ∀{α P} →  P <: preconditions (Γ α)
+         → ∀ {w}
+         → w ∈⟨ P ⟩
+         → σ α w ∈⟨ P ⊔N effects (Γ α) ⟩
 
 -- Remove a predicate R from a world.
 remove : Predicate → World → World

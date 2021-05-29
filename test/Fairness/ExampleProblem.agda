@@ -1,5 +1,3 @@
-\begin{code}
-
 open import Relation.Binary
 open import Relation.Binary.PropositionalEquality
 open import Data.List hiding (any)
@@ -107,12 +105,10 @@ tripsTaken3 male = 30
 tripsTaken3 female = 9
 tripsTaken3 other = 0
 
-finalStateError : Error
+finalStateError : GenderBiasError
 finalStateError = from-inj₂ (execute' planₜ (enriched-σ Γ) tripsTaken3 (updateWorld initialState []))
 
 open import Data.String
 
-displayErrorMessage : (String × Action)
+displayErrorMessage : (Action × String)
 displayErrorMessage = errorMessage finalStateError
-
-\end{code}
