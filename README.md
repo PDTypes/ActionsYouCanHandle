@@ -1,7 +1,7 @@
 Actions You Can Handle 
 ----------------------
 
-This repository contains the code used in the Actions You Can Handle: Dependent Types for AI Plans paper. 
+This repository contains the code used in the *Actions You Can Handle: Dependent Types for AI Plans* paper. 
 
 All of the generic files that can be used for all supported PDDL domains can be found in the src folder. 
 
