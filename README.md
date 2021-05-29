@@ -8,6 +8,7 @@ All of the generic files that can be used for all supported PDDL domains can be 
 Examples
 ---------
 
-In the test folder exists the two running examples used in the paper in the Fuel and Fairness folder. 
+Inside the test folder the taxi domain is defined along with an an example derivation using our typing relation.
 
-The taxi domain is also defined in here with an example derivation using our typing relation.
+Also inside the test folder are the *Fuel* and *Fairness* running examples that are used in the paper.
+
