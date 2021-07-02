@@ -27,18 +27,22 @@ instance
 instance
   NumFin : ∀ {n} → Number (Fin n)
   NumFin {n} = FinLiterals.number n
-  
-initialState : State
-initialState =
-  (+ , taxiIn (taxi 0) (location 0)) ∷
-  (+ , taxiIn (taxi 1) (location 1)) ∷
-  (+ , taxiIn (taxi 2) (location 2)) ∷
-  (+ , personIn (person 0) (location 0)) ∷
-  (+ , personIn (person 1) (location 1)) ∷
-  (+ , personIn (person 2) (location 2)) ∷
+
+
+
+open import Plans.MembershipAndStateTyped taxiDomain
+
+initialWorld : World
+initialWorld =
+  taxiIn (taxi 0) (location 0) ∷
+  taxiIn (taxi 1) (location 1) ∷
+  taxiIn (taxi 2) (location 2) ∷
+  personIn (person 0) (location 0) ∷
+  personIn (person 1) (location 1) ∷
+  personIn (person 2) (location 2) ∷
   []
 
-goalState : State
+goalState : Goal
 goalState =
   (+ , taxiIn (taxi 0) (location 1)) ∷
   (+ , personIn (person 0) (location 2)) ∷
@@ -51,13 +55,11 @@ planₜ = (drive (taxi 0) (location 0) (location 1)) ∷
         (drivePassenger (taxi 2) (person 0) (location 0) (location 2)) ∷
         halt
 
-Derivation : Γ ⊢ planₜ ∶ initialState ↝ goalState
-Derivation = from-just (solver Γ planₜ initialState goalState)
-
---Here we give a fuel level 1 higher than needed as the σα' function takes 1 energy to initialise
+Derivation : Γ ⊢ planₜ ∶ initialWorld ↝ goalState
+Derivation = from-just (solver Γ planₜ initialWorld goalState)
 
 finalState : World
-finalState = from-inj₁ (executeWithFuel planₜ (enriched-σ Γ) (updateWorld' initialState ([] , fuel 4)))
+finalState = from-inj₁ (executeWithFuel planₜ (enriched-σ Γ) (initialWorld , (fuel 3)))
 
 finalStateError : OutOfFuelError
-finalStateError = from-inj₂ (executeWithFuel planₜ (enriched-σ Γ) (updateWorld' initialState ([] , fuel 3)))
+finalStateError = from-inj₂ (executeWithFuel planₜ (enriched-σ Γ) (initialWorld , fuel 2))

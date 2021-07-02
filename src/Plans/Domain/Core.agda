@@ -19,10 +19,19 @@ PredMap = (Polarity × Predicate)
 State : Set
 State = List PredMap
 
+Precondition : Set
+Precondition = State
+
+Effect : Set
+Effect = State
+
+Goal : Set
+Goal = State 
+
 record ActionDescription : Set where
   field
-    preconditions : State
-    effects : State
+    preconditions : Precondition 
+    effects : Effect 
 
 -- Context
 Context : Set

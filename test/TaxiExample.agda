@@ -4,7 +4,6 @@ open import Data.List
 open import Data.Unit
 open import Data.Maybe
 open import Agda.Builtin.FromNat
-
 open import TaxiDomain
 open import Plans.Semantics taxiDomain
 open import Plans.Plan taxiDomain
@@ -25,17 +24,17 @@ instance
   NumFin : ∀ {n} → Number (Fin n)
   NumFin {n} = FinLiterals.number n
   
-initialState : State
-initialState =
-  (+ , taxiIn (taxi 0) (location 0)) ∷
-  (+ , taxiIn (taxi 1) (location 1)) ∷
-  (+ , taxiIn (taxi 2) (location 2)) ∷
-  (+ , personIn (person 0) (location 0)) ∷
-  (+ , personIn (person 1) (location 1)) ∷
-  (+ , personIn (person 2) (location 2)) ∷
+initialWorld : World
+initialWorld =
+  taxiIn (taxi 0) (location 0) ∷
+  taxiIn (taxi 1) (location 1) ∷
+  taxiIn (taxi 2) (location 2) ∷
+  personIn (person 0) (location 0) ∷
+  personIn (person 1) (location 1) ∷
+  personIn (person 2) (location 2) ∷
   []
 
-goalState : State
+goalState : Goal
 goalState =
   (+ , taxiIn (taxi 0) (location 1)) ∷
   (+ , personIn (person 0) (location 2)) ∷
@@ -49,11 +48,11 @@ planₜ = (drive (taxi 0) (location 0) (location 1)) ∷
         halt
 
 
-Derivation : Γ ⊢ planₜ ∶ initialState ↝ goalState
-Derivation = from-just (solver Γ planₜ initialState goalState)
+Derivation : Γ ⊢ planₜ ∶ initialWorld ↝ goalState
+Derivation = from-just (solver Γ planₜ initialWorld goalState)
 
 finalState : World
-finalState = execute planₜ (canonical-σ Γ) (updateWorld initialState [])
+finalState = execute planₜ (canonical-σ Γ) initialWorld
 
 {-
 Output:

@@ -14,16 +14,10 @@ open Domain domain
 World : Set
 World = List Predicate
 
--- Convert a State to a World
-stateToWorld : State  -> World
-stateToWorld [] = []
-stateToWorld ((+ , a) ∷ S) = a ∷ stateToWorld S
-stateToWorld ((- , a) ∷ S) = stateToWorld S
-
 -- Relation between World and State
 _∈⟨_⟩ : World → State → Set
-w ∈⟨ N ⟩ = (∀ a → (+ , a) ∈ N → a ∈ w) ×
-           (∀ a → (- , a) ∈ N → a ∉ w)
+w ∈⟨ S ⟩ = (∀ a → (+ , a) ∈ S → a ∈ w) ×
+           (∀ a → (- , a) ∈ S → a ∉ w)
 
 --------------------------------------------------------
 -- Figure 6. Declarative and operational semantics
@@ -49,3 +43,4 @@ _↓[_]_ : Form → Polarity → State → State
 P ∧ Q ↓[ t ] N = Q ↓[ t ] P ↓[ t ] N
 ¬ x ↓[ t ] N = (neg t , x) ∷ N
 atom x ↓[ t ] N = (t , x) ∷ N
+

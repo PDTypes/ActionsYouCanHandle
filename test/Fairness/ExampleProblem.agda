@@ -37,18 +37,17 @@ instance
   NumFin : ∀ {n} → Number (Fin n)
   NumFin {n} = FinLiterals.number n
   
-
-initialState : State
-initialState =
-  (+ , taxiIn (taxi 0) (location 0)) ∷
-  (+ , taxiIn (taxi 1) (location 1)) ∷
-  (+ , taxiIn (taxi 2) (location 2)) ∷
-  (+ , personIn (person 0) (location 0)) ∷
-  (+ , personIn (person 1) (location 1)) ∷
-  (+ , personIn (person 2) (location 2)) ∷
+initialWorld : World
+initialWorld =
+  taxiIn (taxi 0) (location 0) ∷
+  taxiIn (taxi 1) (location 1) ∷
+  taxiIn (taxi 2) (location 2) ∷
+  personIn (person 0) (location 0) ∷
+  personIn (person 1) (location 1) ∷
+  personIn (person 2) (location 2) ∷
   []
 
-goalState : State
+goalState : Goal
 goalState =
   (+ , taxiIn (taxi 0) (location 1)) ∷
   (+ , personIn (person 0) (location 2)) ∷
@@ -61,12 +60,10 @@ planₜ = (drive (taxi 0) (location 0) (location 1)) ∷
         (drivePassenger (taxi 2) (person 0) (location 0) (location 2)) ∷
         halt
 
-
-
 -- The below function asks us to construct in our type system that applying plan₁ to P entails Q given the context Γ₁
 -- This has been proven true in our type system using our automated solver function.
-Derivation : Γ ⊢ planₜ ∶ initialState ↝ goalState
-Derivation = from-just (solver Γ planₜ initialState goalState)
+Derivation : Γ ⊢ planₜ ∶ initialWorld ↝ goalState
+Derivation = from-just (solver Γ planₜ initialWorld goalState)
 
 -- percentage of variance allowed for lowerbound
 -- 100/4= 25%
@@ -83,7 +80,7 @@ tripsTaken : Gender → ℕ
 tripsTaken x = 0
 
 finalState : World
-finalState = from-inj₁ (execute' planₜ (enriched-σ Γ) tripsTaken (updateWorld initialState []))
+finalState = from-inj₁ (execute' planₜ (enriched-σ Γ) tripsTaken initialWorld)
 
 -------------------------------------------------------------------------------
 
@@ -96,7 +93,7 @@ tripsTaken2 female = 11
 tripsTaken2 other = 0
 
 finalState2 : World
-finalState2 = from-inj₁ (execute' planₜ (enriched-σ Γ) tripsTaken2 (updateWorld initialState []))
+finalState2 = from-inj₁ (execute' planₜ (enriched-σ Γ) tripsTaken2 initialWorld)
 
 --------------------------------------------------------------------------------------------
 
@@ -106,7 +103,7 @@ tripsTaken3 female = 9
 tripsTaken3 other = 0
 
 finalStateError : GenderBiasError
-finalStateError = from-inj₂ (execute' planₜ (enriched-σ Γ) tripsTaken3 (updateWorld initialState []))
+finalStateError = from-inj₂ (execute' planₜ (enriched-σ Γ) tripsTaken3 initialWorld)
 
 open import Data.String
 

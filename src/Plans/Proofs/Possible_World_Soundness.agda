@@ -1,7 +1,7 @@
 open import Relation.Binary
 open import Relation.Binary.PropositionalEquality
 open import Relation.Nullary hiding (¬_)
-open import Data.Product
+open import Data.Product as Prod
 open import Data.List.Membership.Propositional
 open import Data.List.Relation.Unary.Any
 open import Data.List hiding (any)
@@ -136,7 +136,6 @@ lemma-transport-l t (atom x) M N = sym (++-assoc M ((t , x) ∷ []) N)
   = (λ {a₁ x → fst a₁ (∈-exchange a₁ t2 t1 (atom x₁) P N1 N2 x)})
   , (λ {a₁ x x₂ → snd a₁ (∈-exchange a₁ t2 t1 (atom x₁) P N1 N2 x) x₂})
 
-
 --
 -- soundness of operational semantics 
 --
@@ -149,120 +148,24 @@ lemma-transport-l t (atom x) M N = sym (++-assoc M ((t , x) ∷ []) N)
 ↓-sound {w} {+} {atom p} (proj1 , proj2) = somewhere (proj1 p (here refl))
 ↓-sound {w} { - } {atom p} (proj1 , proj2) = nowhere (proj2 p (here refl))
 
-
-open import Data.Sum
-
-strengthening : ∀ t₁ t₂ P Q N a → (t₁ , a) ∈ (Q ↓[ t₂ ] P ↓[ t₂ ] N)
-  → ((t₁ , a) ∈ (Q ↓[ t₂ ] N)) ⊎  ((t₁ , a) ∈ (P ↓[ t₂ ] N))
-strengthening t₁ t₂ (P ∧ P₁) (Q₁ ∧ Q₂) N a x
-  with strengthening t₁ t₂ Q₁ Q₂ (P₁ ↓[  t₂ ] P ↓[ t₂ ] N) a x
-strengthening t₁ t₂ (P ∧ P₁) (Q₁ ∧ Q₂) N a x | inj₁ x₁
-  with strengthening t₁ t₂ Q₂ P₁ (P ↓[ t₂ ] N) a (∈-exchange a t₂ t₂ Q₂ P₁ [] (P ↓[ t₂ ] N) x₁)
-strengthening t₁ t₂ (P ∧ P₁) (Q₁ ∧ Q₂) N a x | inj₁ x₁ | inj₁ x₂ = inj₂ x₂
-strengthening t₁ t₂ (P ∧ P₁) (Q₁ ∧ Q₂) N a x | inj₁ x₁ | inj₂ y
-  with strengthening t₁ t₂ P Q₂ N a y
-strengthening t₁ t₂ (P ∧ P₁) (Q₁ ∧ Q₂) N a x | inj₁ x₁ | inj₂ y | inj₁ x₂
-  = inj₁ (∈-exchange a t₂ t₂ Q₁ Q₂ [] N (weakeningH t₁ t₂ Q₂ Q₁ N a x₂))
-strengthening t₁ t₂ (P ∧ P₁) (Q₁ ∧ Q₂) N a x | inj₁ x₁ | inj₂ y | inj₂ y₁
-  = inj₂ (weakeningH t₁ t₂ P P₁ N a y₁)
-strengthening t₁ t₂ (P ∧ P₁) (Q₁ ∧ Q₂) N a x | inj₂ y
-  with strengthening t₁ t₂ Q₁ P₁ (P ↓[ t₂ ] N) a (∈-exchange a t₂ t₂ Q₁ P₁ [] (P ↓[ t₂ ] N) y)
-strengthening t₁ t₂ (P ∧ P₁) (Q₁ ∧ Q₂) N a x | inj₂ y | inj₁ x₂ = inj₂ x₂
-strengthening t₁ t₂ (P ∧ P₁) (Q₁ ∧ Q₂) N a x | inj₂ y | inj₂ y₂
-  with strengthening t₁ t₂ P Q₁ N a y₂
-strengthening t₁ t₂ (P ∧ P₁) (Q₁ ∧ Q₂) N a x | inj₂ y | inj₂ y₂ | inj₁ x₁ = inj₁ (weakeningH t₁ t₂ Q₁ Q₂ N a x₁)
-strengthening t₁ t₂ (P ∧ P₁) (Q₁ ∧ Q₂) N a x | inj₂ y | inj₂ y₂ | inj₂ y₁ = inj₂ (weakeningH t₁ t₂ P P₁ N a y₁)
-strengthening t₁ t₂ (¬ x₁) (Q₁ ∧ Q₂) N a x with ∈-exchange a t₂ t₂ (Q₁ ∧ Q₂) (¬ x₁) [] N x
-strengthening t₁ t₂ (¬ x₁) (Q₁ ∧ Q₂) N a x | here px = inj₂ (here px)
-strengthening t₁ t₂ (¬ x₁) (Q₁ ∧ Q₂) N a x | there res = inj₁ res
-strengthening t₁ t₂ (atom x₁) (Q₁ ∧ Q₂) N a x with ∈-exchange a t₂ t₂ (Q₁ ∧ Q₂) (atom x₁) [] N x
-strengthening t₁ t₂ (atom x₁) (Q₁ ∧ Q₂) N a x | here px = inj₂ (here px)
-strengthening t₁ t₂ (atom x₁) (Q₁ ∧ Q₂) N a x | there res = inj₁ res
-strengthening t₁ t₂ P (¬ x₁) N a (here px) = inj₁ (here px)
-strengthening t₁ t₂ (P ∧ P₁) (¬ x₁) N a (there x) = inj₂ x
-strengthening t₁ t₂ (¬ x₂) (¬ x₁) N a (there (here px)) = inj₂ (here px)
-strengthening t₁ t₂ (¬ x₂) (¬ x₁) N a (there (there x)) = inj₁ (there x)
-strengthening t₁ t₂ (atom x₂) (¬ x₁) N a (there (here px)) = inj₂ (here px)
-strengthening t₁ t₂ (atom x₂) (¬ x₁) N a (there (there x)) = inj₁ (there x)
-strengthening t₁ t₂ P (atom x₁) N a (here px) = inj₁ (here px)
-strengthening t₁ t₂ P (atom x₁) N a (there x) = inj₂ x
-
-helperPos :  ∀ w t P Q N a → (w ∈⟨ P ↓[ t ] N ⟩) → (w ∈⟨ Q ↓[ t ] N ⟩)
-           → (+ , a) ∈ (Q ↓[ t ] P ↓[ t ] N)
-           → a ∈ w
-helperPos w t P Q N a x x1 x2 with (strengthening + t P Q N) a x2
-helperPos w t P Q N a x x1 x2 | inj₁ y = proj₁ x1 a y
-helperPos w t P Q N a x x1  x2 | inj₂ y = proj₁ x a y
-
-helperNeg : ∀ w t P Q N a → (w ∈⟨ P ↓[ t ] N ⟩) → (w ∈⟨ Q ↓[ t ] N ⟩)
-            → (- , a) ∈ (Q ↓[ t ] P ↓[ t ] N)
-            → a ∉ w
-helperNeg w t P Q N a x x1 x2 x3 with (strengthening - t P Q N) a x2
-helperNeg w t P Q N a x x1 x2 x3 | inj₁ y = proj₂ x1 a y x3
-helperNeg w t P Q N a x x1 x2 x3 | inj₂ y = proj₂ x a y x3
-
-
-∈⟨⟩-strengthening : ∀ w t P Q N → (w ∈⟨ P ↓[ t ] N ⟩) → (w ∈⟨ Q ↓[ t ] N ⟩)
-  → w ∈⟨ Q ↓[ t ] P ↓[ t ] N ⟩
-∈⟨⟩-strengthening w t P Q N p n
-  = (λ { a x → helperPos w t P Q N a p n x })
-    , (λ {a x x2 → helperNeg w t P Q N a p n x x2})
-
-
---
--- Completeness of operational semantics 
---
 ↓-complete : ∀{w t P} → w ⊨[ t ] P → w ∈⟨ P ↓[ t ] [] ⟩
-↓-complete {w} {t} {P ∧ Q} (both x y)
-  = ∈⟨⟩-strengthening w t P Q [] (↓-complete x) (↓-complete y)
-↓-complete {w} {+} {¬ x₁} (flip (nowhere x))
-  = (λ { a (here ())
-       ; a (there ())})
-  , (λ { a (here refl) x₃ → x x₃
-       ; a (there ()) x₃})
-↓-complete {w} { - } {¬ x₁} (flip (somewhere x))
-  = (λ { a (here refl) → x
-       ; a (there ())})
-  , (λ { a (here ()) x₃
-       ; a (there ()) x₃})
-↓-complete {w} { .+ } {atom x₁} (somewhere x)
-  = (λ { a (here refl) → x
-       ; a (there ()) })
-  , (λ { a (here ()) x₃
-       ; a (there ()) x₃ })
-↓-complete {w} { .- } {atom x₁} (nowhere x)
-  = (λ { a (here ())
-       ; a (there ())})
-  , (λ { a (here refl) x₃ → x x₃
-       ; a (there ()) x₃})
+↓-complete {w} {t} p = go p ((λ _ ()) , (λ _ ())) 
+  where
+  go : ∀{t P z} → w ⊨[ t ] P → w ∈⟨ z ⟩ → w ∈⟨ P ↓[ t ] z ⟩
+  go {t}   {x ∧ y}  {z} (both eq eq₁) v = go eq₁ (go eq v)
+  go {t}   {¬ x}    {z} (flip eq)     v = go eq v
+  go { + } {atom a} {z} (somewhere x) v = s , u
+    where s : ∀ d → (+ , d) ∈ (+ , a) ∷ z → d ∈ w
+          s d (here  refl) = x
+          s d (there ins)  = proj₁ v d ins
 
---------------------------------------------------------------------------------------------------------------------------------------
--- New proofs
+          u : ∀ d → (- , d) ∈ (+ , a) ∷ z → d ∉ w
+          u d (there ins) = proj₂ v d ins
+  go { - } {atom a} {z} (nowhere x) v = s , u
+    where s : ∀ d → (+ , d) ∈ (- , a) ∷ z → d ∈ w
+          s d (there ins)  = proj₁ v d ins
 
-helper : (a : Predicate) → (N : State) → (+ , a) ∈ N → a ∈ (stateToWorld N)
-helper a ((+ , .a) ∷ N) (here refl) = here refl
-helper a ((+ , a1) ∷ N) (there x) = there (helper a N x)
-helper a ((- , a1) ∷ N) (there x) = helper a N x
-
-helper2 : (a : Predicate) → (N : State) → a ∈ (stateToWorld N) → (+ , a) ∈ N
-helper2 a ((+ , .a) ∷ N) (here refl) = here refl
-helper2 a ((+ , snd) ∷ N) (there x) = there (helper2 a N x)
-helper2 a ((- , snd) ∷ N) x = there (helper2 a N x)
-
-postulate
-  implicit-consistency-assumption : (t : Polarity) (x : Predicate) → ∀ N → (t , x) ∈ N → (neg t , x) ∉ N
-
-stateToWorldConversionSound : (N : State) → (stateToWorld N) ∈⟨ N ⟩
-stateToWorldConversionSound [] = (λ x ()) , (λ x x₁ ())
-stateToWorldConversionSound ((+ , p) ∷ N) = (λ { a (here refl) → here refl ; a (there x) → there (helper a N x)})
-          , λ { a x (here refl) → implicit-consistency-assumption + p ((+ , p) ∷ N) (here refl) x
-          ; a x (there x₁) → implicit-consistency-assumption + a ((+ , p) ∷ N) (there (helper2 a N x₁)) x}
-stateToWorldConversionSound ((- , p) ∷ N) = (λ { a (there x) → helper a N x})
-          , λ { a (here refl) x₁ → implicit-consistency-assumption - p (((- , p) ∷ N)) (here refl) (helper2 p ((- , p) ∷ N) x₁)
-          ; a (there x) x₁ → implicit-consistency-assumption - a N x (helper2 a N x₁)}
-
-_↓₊ : Form → State
-P ↓₊ = P ↓[ + ] []
-
-convertedStateEntailsPositiveForm : (P : Form) → (stateToWorld (P ↓₊)) ⊨[ + ] P
-convertedStateEntailsPositiveForm N = ↓-sound (stateToWorldConversionSound (N ↓[ + ] []))
+          u : ∀ d → (- , d) ∈ (- , a) ∷ z → d ∉ w
+          u d (here  refl) = x
+          u d (there ins)  = proj₂ v d ins
+  

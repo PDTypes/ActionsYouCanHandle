@@ -51,9 +51,13 @@ getWorld : World × Fuel n → World
 getWorld (w , e) = w
 
 -- World constructor from state
-updateWorld' : State → World × Fuel (suc n) → World × Fuel n
+updateWorld' : Effect → World × Fuel (suc n) → World × Fuel n
 updateWorld' s (w , fuel (suc e)) = updateWorld s w , fuel e
 
 enriched-σ : Context → FuelAwareActionHandler
 enriched-σ Γ α = updateWorld' (effects (Γ α ))
+
+-- Proposition 1: The canonical handler is well-formed
+wf-canonical-σ : ∀ Γ → WfHandler Γ (canonical-σ Γ)
+wf-canonical-σ Γ₁ x = refl
 

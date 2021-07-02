@@ -11,7 +11,6 @@ module Plans.ActionHandler (domain : Domain) where
 open Domain domain
 open import Plans.Semantics domain 
 open import Plans.MembershipAndStateTyped domain
-open import Plans.Subtyping PredMap isSame 
 
 -- Action Handler
 ActionHandler : Set
@@ -28,27 +27,32 @@ ActionHandler = Action → World → World
   results in M being overriden by proj₂ (Γ α) in w
 -}
 open ActionDescription
-
+{-
 WfHandler : Context → ActionHandler → Set
 WfHandler Γ σ =
   ∀{α P} →  P <: preconditions (Γ α)
          → ∀ {w}
          → w ∈⟨ P ⟩
-         → σ α w ∈⟨ P ⊔N effects (Γ α) ⟩
+         → validS (effects (Γ α))
+         → σ α w ∈⟨ P ⊔N effects (Γ α) ⟩-}
 
 -- Remove a predicate R from a world.
 remove : Predicate → World → World
 remove x [] = []
 remove x (y ∷ w) with x ≟ₚ y
-remove x (y ∷ w) | yes p = remove x w
-remove x (y ∷ w) | no ¬p = y ∷ remove x w
+... | yes _ = remove x w
+... | no  _ = y ∷ remove x w
 
 -- Update a world with the changes in a state
-updateWorld : State → World → World
-updateWorld [] w = w
+updateWorld : Effect → World → World
+updateWorld []            w = w
 updateWorld ((+ , x) ∷ N) w = x ∷ updateWorld N w
 updateWorld ((- , x) ∷ N) w = remove x (updateWorld N w)
 
 canonical-σ : Context → ActionHandler
 canonical-σ Γ α = updateWorld (effects (Γ α))
 
+WfHandler : Context → ActionHandler → Set
+WfHandler Γ σ =
+  ∀{α w} → w ∈⟨ preconditions (Γ α) ⟩
+         → σ α w ≡ updateWorld (effects (Γ α)) w 

@@ -16,47 +16,32 @@ open Domain domain
 open import Plans.Semantics domain
 open import Plans.Plan domain 
 open import Plans.MembershipAndStateTyped domain
-open import Plans.Subtyping PredMap isSame 
 open import Plans.ActionHandler domain
 open import Plans.Proofs.Possible_World_Soundness domain
 open ActionDescription
 
-<:-resp-∈ : ∀{N M} → M <: N → ∀{w} → w ∈⟨ M ⟩ → w ∈⟨ N ⟩
-<:-resp-∈ {[]} {M} []<:N w∈⟨M⟩ = (λ _ ()) , λ _ ()
-<:-resp-∈ {x ∷ N} {M} M<:x∷N {w} w∈⟨M⟩ = lt , rt where
-  ih : w ∈⟨ N ⟩
-  ih = <:-resp-∈ (weakSub _ _ _ M<:x∷N) w∈⟨M⟩
-  
-  lt : ∀ a' → (+ , a') ∈ x ∷ N → a' ∈ w
-  lt a' (here refl) =  proj₁ w∈⟨M⟩ a' (M<:x∷N (here refl))
-  lt a' (there +a'∈N) = proj₁ ih a' +a'∈N
-
-  rt : ∀ a' → (- , a') ∈ x ∷ N → a' ∉ w
-  rt a' (here refl) a'∈w = proj₂ w∈⟨M⟩ a' (M<:x∷N (here refl)) a'∈w
-  rt a' (there -a'∈N) a'∈w = proj₂ ih a' -a'∈N a'∈w 
-
----------------------------------------------------------------
--- Theorem 2: Soundness of evaluation of normalised formula
-
-sound : ∀{w σ M Γ f N}
+_↓₊ : Form → State
+P ↓₊ = P ↓[ + ] []
+ 
+sound : ∀{σ w Γ f N}
       → WfHandler Γ σ
-      → Γ ⊢ f ∶ M ↝ N
-      → w ∈⟨ M ⟩
+      → Γ ⊢ f ∶ w ↝ N
       → execute f σ w ∈⟨ N ⟩
-sound wfσ (halt N<:M) w∈⟨M⟩ = <:-resp-∈ N<:M w∈⟨M⟩
-sound {w}{σ}{M}{Γ} wfσ (seq {α}{M₁} M₁'<:M Γ⊢f∶M⊔M₂↝N) w∈⟨M⟩ =
-  sound wfσ Γ⊢f∶M⊔M₂↝N σαw∈⟨M⊔NM₂⟩
-  where σαw∈⟨M⊔NM₂⟩ : σ α w ∈⟨ M ⊔N effects (Γ α) ⟩
-        σαw∈⟨M⊔NM₂⟩ = wfσ M₁'<:M w∈⟨M⟩
+sound x (halt w∈⟨N⟩) = w∈⟨N⟩
+sound wfh (seq {α} {w} w∈⟨P⟩ tr) rewrite wfh w∈⟨P⟩
+  = sound wfh tr
 
----------------------------------------------------------------
--- Theorem 3: Soundness of evaluation
+sound' : ∀{σ w Γ f Q}
+              → WfHandler Γ σ
+              → Γ ⊢ f ∶ w ↝ (Q ↓₊)
+              → execute f σ w ⊨[ + ] Q
+sound' wfh ti = ↓-sound (sound wfh ti)
 
-sound' : ∀{Γ f P Q σ}
-       → WfHandler Γ σ
-       → Γ ⊢ f ∶ (P ↓₊) ↝ (Q ↓₊)
-       → ∀{w} → w ⊨[ + ] P
-       → execute f σ w ⊨[ + ] Q
-sound' {Γ}{f}{P}{Q}{σ} wfσ Γ⊢f∶P↓₊↝Q↓₊ {w} w⊨₊P = ↓-sound h
-  where h : execute f σ w ∈⟨ Q ↓₊ ⟩
-        h = sound wfσ Γ⊢f∶P↓₊↝Q↓₊ (↓-complete w⊨₊P) 
+-------------------------------------------------------------
+
+-- Proposition 1: The canonical handler is well-formed
+wf-canonical-σ : ∀ Γ → WfHandler Γ (canonical-σ Γ)
+wf-canonical-σ Γ₁ x = refl
+
+------------------------------------------------------------
+

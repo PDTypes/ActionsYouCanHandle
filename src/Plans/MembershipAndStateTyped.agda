@@ -27,7 +27,7 @@ a atom≡ s = a ≡ proj₂ s
 
 _∈S_ : (a : Predicate) (s : State) → Set
 a ∈S s = Any (a atom≡_) s
-  
+
 -- Is an atom not in a State
 _∉S_ : (a : Predicate) (s : State) → Set
 a ∉S s = Relation.Nullary.¬ (a ∈S s)
@@ -36,21 +36,6 @@ isInState  : (a : Predicate) → (s : State) → Dec (a ∈S s)
 isInState a s = any? (λ x → a ≟ₚ proj₂ x) s
 
 ------------------------------------------------------------------------------------------------
-
--- A State is valid if there is no duplicate predicates in the State.
-validState : State → Set
-validState [] = ⊤
-validState ((t , At') ∷ s) with isInState At' s
-validState ((t , At') ∷ s) | yes p = ⊥
-validState ((t , At') ∷ s) | no ¬p = validState s
-
---Decidability of State validity
-decValidState : (s : State) → Dec (validState s)
-decValidState [] = yes tt
-decValidState ((t , At') ∷ s) with isInState At' s
-decValidState ((t , At') ∷ s) | yes p =  no λ ()
-decValidState ((t , At') ∷ s) | no ¬p = decValidState s
-
 -- Decidablity of polarities
 decZ : DecidableEquality Polarity
 decZ + + = yes refl
@@ -88,8 +73,10 @@ del-∈ {(t , z) ∷ M} {y} x∈ | yes p = there (del-∈ x∈)
 del-∈ {(t , z) ∷ M} {y} (here refl) | no ¬p = here _≡_.refl
 del-∈ {(t , z) ∷ M} {y} (there x∈) | no ¬p = there (del-∈ x∈)
 
+-- Alternate declaration of validity of States. Showing that all states do not contain any duplicate predicates.
+validS : State -> Set
+validS [] = ⊤
+validS ((z ↝ r) ∷ S) = r ∉S S × validS S
 
--- Override operator
-_⊔N_ : State → State → State
-P ⊔N [] = P
-P ⊔N ((z , q) ∷ Q) = (z , q) ∷ del q P ⊔N Q
+
+
