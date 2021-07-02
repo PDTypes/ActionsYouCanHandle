@@ -32,7 +32,7 @@ data Plan : Set where
 ---------------------------------------------------------------
 -- Well-typing relation over plans
 
-data _⊢_∶_↝_ : Context → Plan → World → Goal → Set where
+data _⊢_∶_↝_ : Context → Plan → World → GoalState → Set where
   halt : ∀ {Γ currentWorld  goalState}
        → currentWorld ∈⟨ goalState ⟩
        → Γ ⊢ halt ∶ currentWorld ↝ goalState
@@ -62,7 +62,7 @@ w ∈?⟨ (- , a) ∷ S ⟩ with a ∈? w
 ...   | no ¬p₁ = no (λ { (fst , snd) → ¬p₁ ((λ x x₁ → fst x (there x₁)) , (λ x x₁ → snd x (there x₁)))})
 ...   | yes (pa , pb) = yes ((λ { a₁ (there x) → pa a₁ x}) , λ { a₁ (here _≡_.refl) (here _≡_.refl) → ¬p (here _≡_.refl) ; a₁ (there x) (here _≡_.refl) → pb a₁ x (here _≡_.refl) ; a₁ (here _≡_.refl) (there x₁) → ¬p (there x₁) ; a₁ (there x) (there x₁) → pb a₁ x  (there x₁)})
 
-solver : (Γ : Context) (f : Plan) (w : World) (g : State) → Maybe (Γ ⊢ f ∶ w ↝ g)
+solver : (Γ : Context) (f : Plan) (w : World) (g : GoalState) → Maybe (Γ ⊢ f ∶ w ↝ g)
 solver Γ (x ∷ f) w g with w ∈?⟨ preconditions (Γ x) ⟩
 ... | no ¬p = nothing
 ... | yes p with solver Γ f (updateWorld (effects (Γ x)) w) g

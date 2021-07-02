@@ -6,12 +6,12 @@ module Plans.Domain where
 
 record Domain : Set₁ where
   field
-    Type : Set
+    Type      : Set
     Predicate : Set
-    Action : Set
+    Action    : Set
 
   open DomainCore Type Action Predicate public
 
   field
-    Γ : Context
+    Γ    : Context
     _≟ₚ_ : DecidableEquality Predicate

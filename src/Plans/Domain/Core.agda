@@ -24,8 +24,8 @@ Preconditions = State
 Effects : Set
 Effects = State
 
-Goal : Set
-Goal = State 
+GoalState : Set
+GoalState = State 
 
 record ActionDescription : Set where
   field

@@ -30,10 +30,6 @@ open import Plans.Plan taxiDomain
 module Fairness.ExampleProblem  where
 
 instance
-  NumNat : Number ℕ
-  NumNat = NatLiterals.number
-  
-instance
   NumFin : ∀ {n} → Number (Fin n)
   NumFin {n} = FinLiterals.number n
   
@@ -47,7 +43,7 @@ initialWorld =
   personIn (person 2) (location 2) ∷
   []
 
-goalState : Goal
+goalState : GoalState
 goalState =
   (+ , taxiIn (taxi 0) (location 1)) ∷
   (+ , personIn (person 0) (location 2)) ∷

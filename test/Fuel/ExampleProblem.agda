@@ -4,17 +4,14 @@ open import Data.Fin
 open import Data.List
 open import Data.Nat
 open import Data.Unit
-open Data.Product
 open import Data.Maybe
-open import Agda.Builtin.FromNat using (Number)
-open import Function.Base
-open import Relation.Nullary.Decidable
+
+open import Agda.Builtin.FromNat
 import Data.Nat.Literals as NatLiterals
 import Data.Fin.Literals as FinLiterals
 
 open import TaxiDomain
 open import Fuel.FuelAwareActionHandler
-
 open import Plans.Semantics taxiDomain
 open import Plans.Plan taxiDomain
 
@@ -38,7 +35,7 @@ initialWorld =
   personIn (person 2) (location 2) ∷
   []
 
-goalState : Goal
+goalState : GoalState
 goalState =
   (+ , taxiIn (taxi 0) (location 1)) ∷
   (+ , personIn (person 0) (location 2)) ∷
