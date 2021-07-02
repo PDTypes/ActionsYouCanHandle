@@ -15,7 +15,6 @@ module Plans.Proofs.Soundness_Of_Evaluation (domain : Domain) where
 open Domain domain
 open import Plans.Semantics domain
 open import Plans.Plan domain 
-open import Plans.MembershipAndStateTyped domain
 open import Plans.ActionHandler domain
 open import Plans.Proofs.Possible_World_Soundness domain
 open ActionDescription

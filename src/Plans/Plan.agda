@@ -19,7 +19,6 @@ module Plans.Plan (domain : Domain) where
 
 open Domain domain
 open import Plans.Semantics domain
-open import Plans.MembershipAndStateTyped domain
 open import Plans.ActionHandler domain
 open ActionDescription using (preconditions; effects)
 
@@ -33,8 +32,6 @@ data Plan : Set where
 ---------------------------------------------------------------
 -- Well-typing relation over plans
 --todo add valid state to initial state 
-    
-open ActionDescription using (preconditions; effects)
     
 data _⊢_∶_↝_ : Context → Plan → World → Goal → Set where
   halt : ∀{Γ currentWorld  goalState} → currentWorld ∈⟨ goalState ⟩

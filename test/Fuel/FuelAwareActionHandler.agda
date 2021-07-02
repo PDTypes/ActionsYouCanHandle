@@ -51,7 +51,7 @@ getWorld : World × Fuel n → World
 getWorld (w , e) = w
 
 -- World constructor from state
-updateWorld' : Effect → World × Fuel (suc n) → World × Fuel n
+updateWorld' : Effects → World × Fuel (suc n) → World × Fuel n
 updateWorld' s (w , fuel (suc e)) = updateWorld s w , fuel e
 
 enriched-σ : Context → FuelAwareActionHandler

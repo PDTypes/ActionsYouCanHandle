@@ -23,14 +23,10 @@ module Fuel.ExampleProblem  where
 instance
   NumNat : Number ℕ
   NumNat = NatLiterals.number
-  
+
 instance
   NumFin : ∀ {n} → Number (Fin n)
   NumFin {n} = FinLiterals.number n
-
-
-
-open import Plans.MembershipAndStateTyped taxiDomain
 
 initialWorld : World
 initialWorld =
