@@ -1,3 +1,4 @@
 name: agda-planning
 include: src/ test/
-depend: standard-library-1.6
+depend: standard-library-1.7
+flags:
